@@ -45,7 +45,9 @@
     text-shadow:0 2px 10px rgba(0,0,0,.4);
     pointer-events:none; z-index:5;
     animation:pulse 1.6s ease-in-out infinite;
+    transition:opacity .2s;
   }
+  #startHint.hidden { opacity:0; animation:none; }
   @keyframes pulse { 0%,100%{opacity:.95} 50%{opacity:.45} }
   .overlay {
     position:absolute; inset:0; z-index:10;
@@ -157,7 +159,7 @@ const GAP = 140, PIPE_W = 56, GROUND_H = 48, PIPE_SPACING = 215;
 const FROG_X = 96;
 
 const frog = { y: H / 2, vy: 0, w: 32, h: 28, rot: 0, flapT: 0 };
-let pipes = [], clouds = [], bamboos = [], hills = [];
+let pipes = [], clouds = [], farHills = [], hills = [];
 let score = 0, best = 0, state = 'ready';
 let lastTime = 0, elapsed = 0, dist = 0, deadTimer = 0, submitted = false;
 
@@ -169,8 +171,8 @@ function rand(a, b) { return a + Math.random() * (b - a); }
 function initScenery() {
   clouds = [];
   for (let i = 0; i < 4; i++) clouds.push({ x: rand(0, W), y: rand(30, 170), s: rand(0.7, 1.3) });
-  bamboos = [];
-  for (let i = 0; i < 9; i++) bamboos.push({ x: i * 78, h: rand(140, H - 140) });
+  farHills = [];
+  for (let i = 0; i < 4; i++) farHills.push({ x: i * 160, w: rand(220, 340), h: rand(80, 150) });
   hills = [];
   for (let i = 0; i < 3; i++) hills.push({ x: i * 240, w: rand(200, 300), h: rand(60, 130) });
 }
@@ -181,6 +183,7 @@ function resetGame() {
   overlay.classList.remove('show');
   submitBtn.disabled = false; submitBtn.textContent = '上榜';
   state = 'ready';
+  startHint.classList.remove('hidden');
   hud.classList.add('ready');
   hud.innerHTML = '最高 <span id="bestTop">' + best + '</span>';
 }
@@ -201,6 +204,7 @@ function flap() {
     state = 'playing';
     hud.classList.remove('ready');
     hud.textContent = '0';
+    startHint.classList.add('hidden');
   }
   if (state === 'playing') {
     frog.vy = FLAP;
@@ -291,21 +295,17 @@ function drawClouds() {
   }
 }
 
-function drawBambooSilhouette() {
-  ctx.strokeStyle = 'rgba(45,85,45,.55)';
-  ctx.lineWidth = 4;
-  for (const b of bamboos) {
-    const bx = ((b.x - dist * 0.22) % (W + 160) + W + 160) % (W + 160) - 80;
+function drawFarMountains() {
+  // 淡青远山，低对比，两层纵深
+  ctx.fillStyle = 'rgba(155,205,175,.38)';
+  for (const f of farHills) {
+    const fx = ((f.x - dist * 0.12) % (W + 400) + W + 400) % (W + 400) - 200;
     ctx.beginPath();
-    ctx.moveTo(bx, H);
-    ctx.lineTo(bx, H - b.h);
-    ctx.stroke();
-    for (let i = 1; i * 42 < b.h; i++) {
-      ctx.beginPath();
-      ctx.moveTo(bx - 5, H - i * 42);
-      ctx.lineTo(bx + 5, H - i * 42);
-      ctx.stroke();
-    }
+    ctx.moveTo(fx, H - GROUND_H);
+    ctx.quadraticCurveTo(fx + f.w / 2, H - GROUND_H - f.h, fx + f.w, H - GROUND_H);
+    ctx.lineTo(fx + f.w, H - GROUND_H);
+    ctx.closePath();
+    ctx.fill();
   }
 }
 
@@ -323,48 +323,44 @@ function drawHills() {
 }
 
 function drawBambooSegment(x, topY, bottomY) {
-  if (topY < 0 || bottomY > H - GROUND_H) return;
+  if (topY >= H - GROUND_H || bottomY <= 0) return;
+  // 竹竿本体：黄绿渐变（偏黄，和青蛙的翠绿区分开）
   const g = ctx.createLinearGradient(x, 0, x + PIPE_W, 0);
-  g.addColorStop(0, '#84cc16');
-  g.addColorStop(0.45, '#a3e635');
-  g.addColorStop(1, '#65a30d');
+  g.addColorStop(0, '#a3b84f');
+  g.addColorStop(0.4, '#c4d76b');
+  g.addColorStop(1, '#7d9440');
   ctx.fillStyle = g;
   ctx.fillRect(x, topY, PIPE_W, bottomY - topY);
-  // 竹节纹
-  ctx.strokeStyle = 'rgba(54,83,20,.75)';
-  ctx.lineWidth = 2;
-  const start = Math.ceil(topY / 40) * 40;
-  for (let y = start; y < bottomY; y += 40) {
-    ctx.beginPath();
-    ctx.moveTo(x + 2, y);
-    ctx.lineTo(x + PIPE_W - 2, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(x + PIPE_W / 2, y, PIPE_W / 2 - 4, 3, 0, 0, Math.PI);
-    ctx.stroke();
+  // 竹竿凹槽纹理（每节两条竖线）
+  ctx.strokeStyle = 'rgba(60,80,25,.35)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(x + PIPE_W * 0.32, topY); ctx.lineTo(x + PIPE_W * 0.32, bottomY);
+  ctx.moveTo(x + PIPE_W * 0.68, topY); ctx.lineTo(x + PIPE_W * 0.68, bottomY);
+  ctx.stroke();
+  // 竹节环：浅色凸起 + 上下深色收边
+  const seg = 44;
+  const start = Math.ceil(topY / seg) * seg;
+  for (let y = start; y < bottomY; y += seg) {
+    ctx.fillStyle = 'rgba(215,228,158,.55)';
+    ctx.fillRect(x + 2, y - 3, PIPE_W - 4, 6);
+    ctx.strokeStyle = 'rgba(45,65,18,.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x + 2, y - 3); ctx.lineTo(x + PIPE_W - 2, y - 3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + 2, y + 3); ctx.lineTo(x + PIPE_W - 2, y + 3); ctx.stroke();
   }
-  // 两侧描边
-  ctx.strokeStyle = 'rgba(54,83,20,.8)';
+  // 两侧深色描边：边界和碰撞完全一致
+  ctx.strokeStyle = 'rgba(30,50,18,.9)';
   ctx.lineWidth = 2;
   ctx.strokeRect(x + 1, topY, PIPE_W - 2, bottomY - topY);
-  // 顶/底斜切口
-  ctx.fillStyle = '#d9f99d';
+  // 顶部斜切口（内壁浅色）
+  ctx.fillStyle = '#eef3cf';
   ctx.beginPath();
-  ctx.ellipse(x + PIPE_W / 2, topY, PIPE_W / 2 - 3, 5, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + PIPE_W / 2, topY, PIPE_W / 2 - 4, 6, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(54,83,20,.55)';
+  ctx.strokeStyle = 'rgba(30,50,18,.6)';
   ctx.lineWidth = 1.5;
   ctx.stroke();
-}
-
-function drawBambooLeaf(x, y, up) {
-  ctx.fillStyle = '#16a34a';
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.quadraticCurveTo(x + 16, y - (up ? 12 : 6), x + 26, y - (up ? 4 : 10));
-  ctx.quadraticCurveTo(x + 14, y + 4, x, y);
-  ctx.closePath();
-  ctx.fill();
 }
 
 function drawPipes() {
@@ -372,8 +368,6 @@ function drawPipes() {
     const top = p.gapC - GAP / 2, bot = p.gapC + GAP / 2;
     drawBambooSegment(p.x, -4, top);
     drawBambooSegment(p.x, bot, H - GROUND_H + 4);
-    drawBambooLeaf(p.x + PIPE_W - 2, top - 10, true);
-    drawBambooLeaf(p.x + PIPE_W - 2, bot + 14, false);
   }
 }
 
@@ -393,6 +387,9 @@ function drawFrog() {
   // 身体
   ctx.fillStyle = '#22c55e';
   ctx.beginPath(); ctx.ellipse(0, -8, 10, 8.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(6,78,59,.55)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
   // 腹部
   ctx.fillStyle = '#bbf7d0';
   ctx.beginPath(); ctx.ellipse(0, -5.5, 6.5, 5, 0, 0, Math.PI * 2); ctx.fill();
@@ -439,7 +436,7 @@ function drawGround() {
 function draw() {
   drawSky();
   drawClouds();
-  drawBambooSilhouette();
+  drawFarMountains();
   drawHills();
   drawPipes();
   drawFrog();

@@ -138,7 +138,7 @@
       </div>
     </div>
   </div>
-  <div class="foot">穿竹缝 +1 · 吃金币 +2 · 三滴血，撞竹掉血后短暂虚化</div>
+  <div class="foot">穿竹缝 +1 · 空隙里吃道具：金币/血包/虚化/加一/翻倍 · 三滴血撞竹虚化</div>
 </div>
 
 <script>
@@ -169,6 +169,7 @@ const frog = { y: H / 2, vy: 0, w: 32, h: 28, rot: 0, flapT: 0 };
 let pipes = [], clouds = [], farHills = [], hills = [];
 let items = [], floats = [];
 let score = 0, best = 0, state = 'ready';
+let bonus = 0;   // 加一药水叠加的每根竹子永久加分
 let hearts = MAX_HEARTS, invincible = 0;
 let lastTime = 0, elapsed = 0, dist = 0, deadTimer = 0, submitted = false;
 
@@ -189,7 +190,7 @@ function initScenery() {
 function resetGame() {
   frog.y = H / 2; frog.vy = 0; frog.rot = 0; frog.flapT = 0;
   pipes = []; items = []; floats = [];
-  score = 0; deadTimer = 0; submitted = false;
+  score = 0; bonus = 0; deadTimer = 0; submitted = false;
   hearts = MAX_HEARTS; invincible = 0;
   renderHearts();
   overlay.classList.remove('show');
@@ -222,17 +223,23 @@ function spawnPipe() {
   const prev = pipes.length ? pipes[pipes.length - 1] : null;
   const params = pipeParams(prev);
   pipes.push({ x: W + 20, ...params, scored: false });
-  // 每两根竹子中间刷一个道具（第 2、4、6…根）
+  // 每两根竹子之间的水平空隙刷一个道具（第 2、4、6…根）
   if (pipes.length % 2 === 0) {
-    items.push({ x: W + 20 + PIPE_W / 2, y: params.gapC, type: pickItemType(), t: rand(0, 60) });
+    items.push({
+      x: W + 20 - PIPE_SPACING / 2 + PIPE_W / 2,   // 左右两根竹子的空隙正中间
+      y: rand(60, H - GROUND_H - 60),              // 可飞行区随机高度，要主动去吃
+      type: pickItemType(), t: rand(0, 60)
+    });
   }
 }
 
 function pickItemType() {
   const r = Math.random();
-  if (r < 0.55) return 'coin';      // 金币：+2 分
-  if (r < 0.70) return 'heart';     // 血包：+1 血
-  return 'ghost';                   // 虚化药水：3 秒护盾
+  if (r < 0.38) return 'coin';      // 金币：+2 分
+  if (r < 0.50) return 'heart';     // 血包：+1 血
+  if (r < 0.68) return 'ghost';     // 虚化药水：3 秒护盾（紫瓶 ?）
+  if (r < 0.85) return 'plus';      // 加一药水：之后每根竹子永久 +1（绿瓶 +）
+  return 'double';                  // 加倍药水：分数直接翻倍（橙瓶 ×2）
 }
 
 function renderHearts() {
@@ -263,6 +270,13 @@ function applyItem(it) {
   } else if (it.type === 'ghost') {
     invincible = Math.max(invincible, GHOST_MS);
     addFloat(it.x, it.y - 14, '虚化!', '#c4b5fd', 1.2);
+  } else if (it.type === 'plus') {
+    bonus += 1;                       // 之后每根竹子 +1 永久叠加
+    addFloat(it.x, it.y - 14, '永久+1!', '#4ade80', 1.2);
+  } else if (it.type === 'double') {
+    score *= 2;                       // 当前分数直接翻倍
+    hudScore.textContent = String(score);
+    addFloat(it.x, it.y - 14, '×2!', '#fb923c', 1.2);
   }
 }
 
@@ -326,7 +340,7 @@ function update(dt) {
     pipes = pipes.filter(p => p.x > -PIPE_W - 10);
     if (pipes.length === 0 || pipes[pipes.length - 1].x < W - PIPE_SPACING + 20) spawnPipe();
     for (const p of pipes) {
-      if (!p.scored && p.x + PIPE_W < FROG_X) { p.scored = true; score++; hudScore.textContent = String(score); }
+      if (!p.scored && p.x + PIPE_W < FROG_X) { p.scored = true; score += 1 + bonus; hudScore.textContent = String(score); }
     }
     // 道具：移动 + 吃到
     for (const it of items) {
@@ -550,11 +564,56 @@ function drawGhost(x, y, t) {
   ctx.restore();
 }
 
+function drawPlusPotion(x, y, t) {
+  const bob = Math.sin(t * 0.2) * 2;
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.shadowColor = 'rgba(74,222,128,.9)';
+  ctx.shadowBlur = 12;
+  // 绿色药水瓶身：加一（永久 +1）
+  ctx.fillStyle = 'rgba(34,197,94,.92)';
+  rr(-8, -3, 16, 13, 4); ctx.fill();
+  ctx.fillStyle = '#4ade80';
+  ctx.fillRect(-3.5, -7, 7, 5);
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(-4.5, -11, 9, 5);
+  ctx.shadowBlur = 0;
+  // "+" 标记
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(-1.6, -3, 3.2, 8);
+  ctx.fillRect(-4, 0.6, 8, 3.2);
+  ctx.restore();
+}
+
+function drawDoublePotion(x, y, t) {
+  const bob = Math.sin(t * 0.2) * 2;
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.shadowColor = 'rgba(251,146,60,.9)';
+  ctx.shadowBlur = 12;
+  // 橙色药水瓶身：加倍（×2）
+  ctx.fillStyle = 'rgba(249,115,22,.92)';
+  rr(-8, -3, 16, 13, 4); ctx.fill();
+  ctx.fillStyle = '#fb923c';
+  ctx.fillRect(-3.5, -7, 7, 5);
+  ctx.fillStyle = '#c2410c';
+  ctx.fillRect(-4.5, -11, 9, 5);
+  ctx.shadowBlur = 0;
+  // "×2" 标记
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('×2', 0, 2.5);
+  ctx.restore();
+}
+
 function drawItems() {
   for (const it of items) {
     if (it.type === 'coin') drawCoin(it.x, it.y, it.t);
     else if (it.type === 'heart') drawHeart(it.x, it.y, it.t);
-    else drawGhost(it.x, it.y, it.t);
+    else if (it.type === 'ghost') drawGhost(it.x, it.y, it.t);
+    else if (it.type === 'plus') drawPlusPotion(it.x, it.y, it.t);
+    else drawDoublePotion(it.x, it.y, it.t);
   }
 }
 

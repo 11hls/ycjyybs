@@ -155,7 +155,7 @@ const restartBtn = document.getElementById('restartBtn');
 
 const W = 400, H = 600;
 const GRAVITY = 0.45, FLAP = -7.0, SCROLL = 2.2;
-const GAP = 140, PIPE_W = 56, GROUND_H = 48, PIPE_SPACING = 215;
+const PIPE_W = 56, GROUND_H = 48, PIPE_SPACING = 215;
 const FROG_X = 96;
 
 const frog = { y: H / 2, vy: 0, w: 32, h: 28, rot: 0, flapT: 0 };
@@ -188,15 +188,18 @@ function resetGame() {
   hud.innerHTML = '最高 <span id="bestTop">' + best + '</span>';
 }
 
-function pipeGapCenter(prev) {
-  if (prev == null) return 140 + Math.random() * 290;   // 140~430
-  const next = prev + rand(-130, 130);                  // 相邻管道平滑过渡，不陡升陡降
-  return Math.max(140, Math.min(430, next));
+function pipeParams(prev) {
+  const gap = 125 + Math.random() * 60;              // 上下竹子间距随机：125~185
+  let c;
+  if (prev == null) c = 110 + Math.random() * 300;   // 第一根中心：110~410
+  else c = prev.gapC + rand(-150, 150);              // 相邻落差放大，高低起伏更随机
+  c = Math.max(gap / 2, Math.min(H - GROUND_H - gap / 2, c)); // 保证上下竹竿都在空中区
+  return { gapC: c, gap };
 }
 
 function spawnPipe() {
-  const prev = pipes.length ? pipes[pipes.length - 1].gapC : null;
-  pipes.push({ x: W + 20, gapC: pipeGapCenter(prev), scored: false });
+  const prev = pipes.length ? pipes[pipes.length - 1] : null;
+  pipes.push({ x: W + 20, ...pipeParams(prev), scored: false });
 }
 
 function flap() {
@@ -255,7 +258,7 @@ function update(dt) {
     // 碰撞：竹子
     for (const p of pipes) {
       if (FROG_X + frog.w > p.x && FROG_X < p.x + PIPE_W) {
-        const top = p.gapC - GAP / 2, bot = p.gapC + GAP / 2;
+        const top = p.gapC - p.gap / 2, bot = p.gapC + p.gap / 2;
         if (frog.y < top || frog.y + frog.h > bot) { die(); break; }
       }
     }
@@ -365,7 +368,7 @@ function drawBambooSegment(x, topY, bottomY) {
 
 function drawPipes() {
   for (const p of pipes) {
-    const top = p.gapC - GAP / 2, bot = p.gapC + GAP / 2;
+    const top = p.gapC - p.gap / 2, bot = p.gapC + p.gap / 2;
     drawBambooSegment(p.x, -4, top);
     drawBambooSegment(p.x, bot, H - GROUND_H + 4);
   }

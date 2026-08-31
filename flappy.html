@@ -186,7 +186,7 @@
       <div class="lg-item"><canvas class="lg-icon" data-item="plus" width="88" height="88"></canvas><div class="lg-text"><b>加一药水</b><span>之后每根竹子永久 +1 分</span></div></div>
       <div class="lg-item"><canvas class="lg-icon" data-item="double" width="88" height="88"></canvas><div class="lg-text"><b>加倍药水</b><span>当前分数直接翻倍</span></div></div>
     </div>
-    <div class="lg-foot">道具刷在左右两根竹子之间的空隙里，得主动飞过去吃</div>
+    <div class="lg-foot">温馨提示：道具随机刷在竹间空隙里，位置不保证能吃得到，能吃到算赚到～</div>
   </aside>
 </div>
 
@@ -220,6 +220,7 @@ let pipes = [], clouds = [], farHills = [], hills = [];
 let items = [], floats = [];
 let score = 0, best = 0, state = 'ready';
 let bonus = 0;   // 加一药水叠加的每根竹子永久加分
+let pipeSeq = 0; // 竹子生成序号（独立计数器，不受 pipes 数组裁剪影响）
 let hearts = MAX_HEARTS, invincible = 0;
 let lastTime = 0, elapsed = 0, dist = 0, deadTimer = 0, submitted = false;
 
@@ -240,7 +241,7 @@ function initScenery() {
 function resetGame() {
   frog.y = H / 2; frog.vy = 0; frog.rot = 0; frog.flapT = 0;
   pipes = []; items = []; floats = [];
-  score = 0; bonus = 0; deadTimer = 0; submitted = false;
+  score = 0; bonus = 0; pipeSeq = 0; deadTimer = 0; submitted = false;
   hearts = MAX_HEARTS; invincible = 0;
   renderHearts();
   overlay.classList.remove('show');
@@ -273,8 +274,10 @@ function spawnPipe() {
   const prev = pipes.length ? pipes[pipes.length - 1] : null;
   const params = pipeParams(prev);
   pipes.push({ x: W + 20, ...params, scored: false });
-  // 每两根竹子之间的水平空隙刷一个道具（第 2、4、6…根）
-  if (pipes.length % 2 === 0) {
+  pipeSeq++;
+  // 每两根竹子（第 2、4、6…根）之间的水平空隙刷一个道具
+  // 用独立序号判断：pipes.length 会因竹子移出屏幕被裁剪，奇偶性会乱
+  if (pipeSeq % 2 === 0) {
     items.push({
       x: W + 20 - PIPE_SPACING / 2 + PIPE_W / 2,   // 左右两根竹子的空隙正中间
       y: rand(60, H - GROUND_H - 60),              // 可飞行区随机高度，要主动去吃

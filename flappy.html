@@ -188,12 +188,21 @@ function resetGame() {
   hud.innerHTML = '最高 <span id="bestTop">' + best + '</span>';
 }
 
+function randomGap() {
+  // 分三档：窄缝 / 普通 / 宽缝，视觉差异明显
+  const r = Math.random();
+  if (r < 0.3) return 115 + Math.random() * 20;   // 窄：115~135（挑战）
+  if (r < 0.65) return 145 + Math.random() * 25;  // 中：145~170
+  return 175 + Math.random() * 20;                // 宽：175~195（奖励）
+}
+
 function pipeParams(prev) {
-  const gap = 125 + Math.random() * 60;              // 上下竹子间距随机：125~185
+  const gap = randomGap();
   let c;
-  if (prev == null) c = 110 + Math.random() * 300;   // 第一根中心：110~410
-  else c = prev.gapC + rand(-150, 150);              // 相邻落差放大，高低起伏更随机
-  c = Math.max(gap / 2, Math.min(H - GROUND_H - gap / 2, c)); // 保证上下竹竿都在空中区
+  if (prev == null) c = 130 + Math.random() * 260; // 第一根中心：130~390
+  else c = prev.gapC + rand(-150, 150);            // 相邻落差：高低起伏
+  // 上下竹段各留至少 70px 可视高度，不会出现"只有半根竹子"
+  c = Math.max(gap / 2 + 70, Math.min(H - GROUND_H - gap / 2 - 70, c));
   return { gapC: c, gap };
 }
 

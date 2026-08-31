@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>余常进 | 个人主页</title>
+<meta name="description" content="余常进，2027届本科，熟悉 Java、SSM 框架及前沿 AI 工具，中软国际实习中，秋招投递中。求职意向：AI应用开发 / 全栈开发 / 后端开发。" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        bg:      '#14161d',
+        card:    '#1b1e26',
+        line:    '#33363d',
+        soft:    '#d3d5dc',
+        dim:     '#a6a9b3',
+        brand:   '#3b82f6',
+        brand2:  '#38bdf8',
+      },
+      fontFamily: {
+        sans: ['Inter', '"Noto Sans SC"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+      },
+    },
+  },
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+  ::selection { background: rgba(59,130,246,.35); color:#fff; }
+  html { color-scheme: dark; background:#14161d; }
+  body { background:transparent; }
+  /* 视频背景层（fixed 铺满，置于所有内容之下） */
+  .video-bg {
+    position:fixed; inset:0; z-index:-2;
+    width:100%; height:100%;
+    object-fit:cover; object-position:center;
+  }
+  /* 导航栏：白色毛玻璃，高透光度 */
+  .nav-glass {
+    background:rgba(255,255,255,.08);
+    backdrop-filter:blur(20px) saturate(140%);
+    -webkit-backdrop-filter:blur(20px) saturate(140%);
+    border-bottom:1px solid rgba(255,255,255,.14);
+  }
+  /* 导航链接胶囊：hover 白底高亮 + 蓝色辉光 */
+  .nav-pill {
+    padding:.45rem 1.15rem;
+    border-radius:9999px;
+    font-size:.875rem;
+    font-weight:500;
+    color:#b8b8bd;
+    transition:color .25s, background .25s, box-shadow .25s;
+  }
+  .nav-pill:hover {
+    color:#fff;
+    background:rgba(255,255,255,.14);
+    box-shadow:0 0 18px rgba(56,189,248,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  /* 视频上方暗色遮罩：压暗背景保证正文可读，带轻微上下渐变 */
+  .video-veil {
+    position:fixed; inset:0; z-index:-1;
+    background:
+      linear-gradient(180deg, rgba(9,9,11,.5) 0%, rgba(9,9,11,.32) 50%, rgba(9,9,11,.55) 100%),
+      rgba(9,9,11,.18);
+    pointer-events:none;
+  }
+  /* Vetra 式居中蓝色光晕 */
+  .hero-glow {
+    position:absolute; top:-120px; left:50%; transform:translateX(-50%);
+    width:70%; height:340px; border-radius:9999px;
+    background:linear-gradient(90deg,#38bdf8,#3b82f6);
+    filter:blur(10rem); opacity:.2; pointer-events:none;
+  }
+  .text-gradient { background:linear-gradient(90deg,#38bdf8,#3b82f6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .btn-primary {
+    background:#3b82f6; color:#fff; transition:all .3s ease;
+  }
+  .btn-primary:hover { background:#2563eb; transform:translateY(-2px); box-shadow:0 8px 30px -8px rgba(59,130,246,.5); }
+  .btn-ghost { transition:all .3s ease; }
+  .btn-ghost:hover { background:rgba(255,255,255,.06); transform:translateY(-2px); }
+  .vcard { background:rgba(255,255,255,.05); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.14); border-radius:1rem; transition:all .3s ease; }
+  .vcard:hover { transform:translateY(-4px); border-color:rgba(59,130,246,.45); box-shadow:0 10px 40px -10px rgba(59,130,246,.2); }
+  .fade-up { opacity:0; transform:translateY(20px); animation:fadeUp .8s ease forwards; }
+  @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+  .d1{animation-delay:.05s}.d2{animation-delay:.15s}.d3{animation-delay:.25s}.d4{animation-delay:.35s}
+  @media (prefers-reduced-motion: reduce) { .fade-up{animation:none;opacity:1;transform:none} html{scroll-behavior:auto} }
+  input:focus, textarea:focus { outline:none; border-color:rgba(59,130,246,.6); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+
+  /* 滚动入场动效：未进入视口的模块整体模糊半透明缩小，进入后聚焦弹出 */
+  .reveal {
+    opacity:.15;
+    filter:blur(12px);
+    transform:translateY(46px) scale(.975);
+    transition:opacity .85s cubic-bezier(.16,1,.3,1),
+               filter .85s cubic-bezier(.16,1,.3,1),
+               transform .85s cubic-bezier(.16,1,.3,1);
+  }
+  .reveal.on { opacity:1; filter:none; transform:none; }
+  @media (prefers-reduced-motion: reduce) { .reveal{opacity:1;filter:none;transform:none;transition:none} }
+
+  /* 顶部滚动进度条 */
+  #progressBar {
+    position:fixed; top:0; left:0; right:0; height:2px; z-index:60;
+    background:linear-gradient(90deg,#38bdf8,#3b82f6);
+    transform:scaleX(0); transform-origin:left;
+    pointer-events:none;
+  }
+  /* 简历弹窗 */
+  .resume-modal {
+    position:fixed; inset:0; z-index:80; display:none;
+    align-items:center; justify-content:center; padding:24px;
+    background:rgba(5,5,7,.82); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  }
+  .resume-modal.open { display:flex; animation:resumeFade .2s ease; }
+  @keyframes resumeFade { from{opacity:0} to{opacity:1} }
+  .resume-modal img {
+    max-width:min(92vw, 760px); max-height:88vh; width:auto; height:auto;
+    border-radius:12px; box-shadow:0 20px 60px -10px rgba(0,0,0,.6); background:#fff;
+  }
+  .resume-close {
+    position:absolute; top:18px; right:22px; width:40px; height:40px;
+    border-radius:9999px; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.12); color:#fff; font-size:22px; line-height:1; cursor:pointer;
+    transition:background .2s;
+  }
+  .resume-close:hover { background:rgba(255,255,255,.24); }
+  @media (prefers-reduced-motion: reduce) { .resume-modal.open { animation:none; } }
+</style>
+</head>
+<body class="font-sans text-neutral-200 antialiased overflow-x-hidden">
+
+<!-- 滚动进度条 -->
+<div id="progressBar"></div>
+
+<!-- 视频背景（autoplay 静音循环，playsinline 保证 iOS 自动播放） -->
+<video class="video-bg" autoplay muted loop playsinline preload="auto"
+  src="https://d8j0ntlcm91z4.cloudfront.net/user_3GJaYKPxdnQG0Q9O26lu6DPmcHu/hf_20260805_192612_e00017a8-56b0-4957-935b-9ffd87663994.mp4"></video>
+<!-- 暗色遮罩层 -->
+<div class="video-veil"></div>
+
+<header class="nav-glass sticky top-0 w-full h-16 z-50">
+  <nav class="relative max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
+    <a href="#hero" class="flex items-center gap-2 text-lg font-semibold text-white tracking-tight">
+      <svg class="w-5 h-5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 2-8-8 2-3.5 3.5a2.5 2.5 0 0 0 3 3L16 16Z"/><path d="M4 20 8.5 15.5"/></svg>
+      余常进
+    </a>
+    <!-- 导航链接组：居中白色玻璃胶囊，hover 高亮 + 蓝光 -->
+    <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-white/8 px-1.5 py-1.5">
+      <a href="#about" class="nav-pill">关于我</a>
+      <a href="#board" class="nav-pill">留言板</a>
+      <a href="./games.html" class="nav-pill">小游戏</a>
+    </div>
+    <div class="hidden md:flex items-center">
+      <a href="#contact" class="btn-primary inline-flex items-center gap-2 rounded-md text-sm font-medium h-9 px-4 py-2">
+        联系我
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+    </div>
+    <button id="menuBtn" class="md:hidden text-soft hover:text-white transition-colors" aria-label="打开菜单">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </nav>
+  <div id="mobileMenu" class="hidden md:hidden nav-glass border-t border-white/10">
+    <div class="px-6 py-4 flex flex-col gap-4 text-sm font-medium text-soft">
+      <a href="#about" class="hover:text-white transition-colors">关于我</a>
+      <a href="#board" class="hover:text-white transition-colors">留言板</a>
+      <a href="./games.html" class="hover:text-white transition-colors">小游戏</a>
+      <a href="#contact" class="btn-primary inline-flex justify-center items-center rounded-md h-9 px-4 py-2">联系我</a>
+    </div>
+  </div>
+</header>
+
+<main class="relative z-40">
+
+<!-- Hero -->
+<section id="hero" class="relative py-24 lg:py-36">
+  <div class="hero-glow"></div>
+  <div class="max-w-6xl mx-auto px-6 flex flex-col items-center text-center gap-y-8">
+    <div class="fade-up d1 inline-flex items-center gap-2 rounded-full border border-line bg-card px-4 py-1.5">
+      <span class="h-1.5 w-1.5 rounded-full bg-brand animate-pulse"></span>
+      <span class="text-xs font-medium text-soft tracking-wide">2027届本科 · 中软国际实习中 · 秋招投递中</span>
+    </div>
+    <h1 class="fade-up d2 text-4xl md:text-5xl lg:text-7xl font-bold text-white !leading-tight max-w-4xl">
+      欢迎来到<br class="lg:hidden" /><span class="text-gradient">我的个人主页</span>
+    </h1>
+    <p class="fade-up d3 max-w-xl text-base lg:text-lg text-soft leading-relaxed">
+      你好，我是余常进。熟悉 Java、SSM 框架及前沿 AI 工具，
+      喜欢把想法做成能跑起来的东西。
+    </p>
+    <div class="fade-up d3 flex flex-wrap items-center justify-center gap-2 text-sm">
+      <span class="text-dim mr-1">求职意向</span>
+      <span class="px-4 py-1.5 rounded-full bg-brand/10 border border-brand/30 text-brand font-medium">AI应用开发</span>
+      <span class="px-4 py-1.5 rounded-full bg-brand2/10 border border-brand2/30 text-brand2 font-medium">全栈开发</span>
+      <span class="px-4 py-1.5 rounded-full bg-white/5 border border-line text-soft font-medium">后端开发</span>
+    </div>
+    <div class="fade-up d4 flex flex-wrap items-center justify-center gap-4 mt-2">
+      <a href="./resume-1.png" onclick="openResume(); return false;" class="btn-primary group inline-flex items-center gap-2 rounded-md text-sm font-semibold h-11 px-8">
+        查看简历
+        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a href="#contact" class="btn-ghost inline-flex items-center rounded-md text-sm font-medium text-soft border border-line h-11 px-8">联系我</a>
+    </div>
+  </div>
+</section>
+
+<!-- 关于我 -->
+<section id="about" class="reveal py-20 lg:py-24">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex flex-col items-center text-center mb-14">
+      <h2 class="text-2xl lg:text-4xl font-medium text-gradient">关于我</h2>
+      <p class="text-sm text-dim mt-3">Java 后端 · 中软国际实习 · 持续学习中</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="vcard md:col-span-2 p-8 lg:p-10">
+        <p class="text-soft leading-relaxed">
+          我是余常进，2027届本科毕业生。技术栈以 Java 后端为主，熟悉 SSM（Spring + SpringMVC + MyBatis）框架，
+          同时持续关注并使用 AI 编程与效率工具，相信 AI 会重塑开发方式，也希望能站在这个方向上。
+        </p>
+        <p class="text-soft leading-relaxed mt-4">
+          目前在中软国际实习，参与真实项目的开发与维护，同时积极投递秋招。
+          目标是成为一名能独立负责模块、懂业务也懂技术的开发者。
+        </p>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="vcard p-5 text-center">
+          <div class="text-2xl mb-2">💻</div>
+          <p class="text-xs text-soft">写代码 / 折腾工具</p>
+        </div>
+        <div class="vcard p-5 text-center">
+          <div class="text-2xl mb-2">📷</div>
+          <p class="text-xs text-soft">摄影</p>
+        </div>
+        <div class="vcard p-5 text-center">
+          <div class="text-2xl mb-2">🏃</div>
+          <p class="text-xs text-soft">慢跑</p>
+        </div>
+        <div class="vcard p-5 text-center">
+          <div class="text-2xl mb-2">🎮</div>
+          <p class="text-xs text-soft">小游戏</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 留言板 -->
+<section id="board" class="reveal py-20 lg:py-24">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex flex-col items-center text-center mb-14">
+      <h2 class="text-2xl lg:text-4xl font-medium text-gradient">留言板</h2>
+      <p class="text-sm text-dim mt-3">路过就留句话吧</p>
+    </div>
+    <div class="grid md:grid-cols-5 gap-6">
+      <div class="vcard md:col-span-2 p-8">
+        <form id="msgForm" class="space-y-5">
+          <div>
+            <label for="msgNick" class="block text-xs font-medium text-soft mb-2">昵称</label>
+            <input id="msgNick" type="text" maxlength="20" placeholder="你的昵称"
+              class="w-full rounded-md bg-transparent border border-white/25 px-4 py-3 text-sm text-white placeholder:text-dim/70 transition-all focus:border-white/50" />
+          </div>
+          <div>
+            <label for="msgContent" class="block text-xs font-medium text-soft mb-2">留言内容</label>
+            <textarea id="msgContent" rows="4" maxlength="200" placeholder="随便聊聊…"
+              class="w-full rounded-md bg-transparent border border-white/25 px-4 py-3 text-sm text-white placeholder:text-dim/70 resize-none transition-all focus:border-white/50"></textarea>
+          </div>
+          <button type="submit" class="btn-primary w-full rounded-md text-sm font-semibold h-11 px-6">
+            提交留言
+          </button>
+        </form>
+      </div>
+      <div class="md:col-span-3">
+        <div id="msgList" class="space-y-4"></div>
+        <p id="msgEmpty" class="hidden text-sm text-dim text-center py-10 border border-dashed border-line rounded-xl">
+          还没有留言，来抢个沙发吧
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 联系方式 -->
+<section id="contact" class="reveal py-20 lg:py-24">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="relative overflow-hidden rounded-[2rem] border border-white/15 backdrop-blur-md px-8 py-16 lg:py-20 text-center" style="background:rgba(255,255,255,.05)">
+      <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-2/3 h-56 rounded-full bg-gradient-to-r from-brand2 to-brand blur-[6rem] opacity-20 pointer-events-none"></div>
+      <h2 class="text-2xl lg:text-4xl font-medium text-white mb-4">想聊聊？随时欢迎</h2>
+      <p class="text-sm text-soft mb-10">邮箱来信看到就会回</p>
+      <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+        <div class="btn-ghost w-full sm:w-auto text-sm px-6 py-3 rounded-lg border border-line bg-bg/60 inline-flex items-center justify-center gap-3 select-all">
+          <svg class="w-4 h-4 text-soft shrink-0" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <span class="text-soft">GitHub：</span><span class="text-white">github.com/11hls</span>
+        </div>
+        <div class="btn-ghost w-full sm:w-auto text-sm px-6 py-3 rounded-lg border border-line bg-bg/60 inline-flex items-center justify-center gap-3 select-all">
+          <svg class="w-4 h-4 text-soft shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
+          <span class="text-soft">邮箱：</span><span class="text-white">18950942792@163.com</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="border-t border-line/60 py-10">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-dim">
+    <p>© 2026 余常进</p>
+    <p>Built with Tailwind CSS</p>
+  </div>
+</footer>
+
+<!-- 简历弹窗：页内直接弹出图片，不跳转新标签页 -->
+<div class="resume-modal" id="resumeModal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="简历预览">
+  <button class="resume-close" id="resumeClose" aria-label="关闭简历预览">×</button>
+  <img src="./resume-1.png" alt="余常进 简历" />
+</div>
+
+<script>
+/* 滚动入场动效：模块进入视口时加 .on，从模糊虚态聚焦浮现 */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+/* 顶部滚动进度条 */
+const pbar = document.getElementById('progressBar');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
+  pbar.style.transform = `scaleX(${p})`;
+}, { passive: true });
+
+const menuBtn = document.getElementById('menuBtn');
+const mobileMenu = document.getElementById('mobileMenu');
+menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+mobileMenu.querySelectorAll('a').forEach(a =>
+  a.addEventListener('click', () => mobileMenu.classList.add('hidden'))
+);
+
+/* 简历弹窗 */
+const resumeModal = document.getElementById('resumeModal');
+function openResume() {
+  resumeModal.classList.add('open');
+  resumeModal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+function closeResume() {
+  resumeModal.classList.remove('open');
+  resumeModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+document.getElementById('resumeClose').addEventListener('click', closeResume);
+resumeModal.addEventListener('click', e => { if (e.target === resumeModal) closeResume(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && resumeModal.classList.contains('open')) closeResume();
+});
+
+/* 留言板：对接 Cloudflare Functions + D1（/api/messages，无需登录） */
+const listEl  = document.getElementById('msgList');
+const emptyEl = document.getElementById('msgEmpty');
+let msgState = [];
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, s =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function fmtTime(iso) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso);
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function renderMessages() {
+  if (!msgState.length) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  listEl.innerHTML = msgState.map(m => `
+    <div class="vcard p-5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-brand2">${escapeHtml(m.nick)}</span>
+        <span class="text-xs text-dim">${escapeHtml(fmtTime(m.createdAt))}</span>
+      </div>
+      <p class="text-sm text-soft leading-relaxed">${escapeHtml(m.content)}</p>
+    </div>
+  `).join('');
+}
+
+async function loadMessages() {
+  try {
+    const res = await fetch('/api/messages');
+    if (!res.ok) throw new Error('load failed');
+    msgState = await res.json();
+    renderMessages();
+  } catch (e) {
+    emptyEl.textContent = '留言加载失败，稍后再试';
+    emptyEl.style.display = 'block';
+  }
+}
+loadMessages();
+
+document.getElementById('msgForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const nick = document.getElementById('msgNick').value.trim();
+  const content = document.getElementById('msgContent').value.trim();
+  if (!nick || !content) { alert('昵称和留言内容都要填哦'); return; }
+  const btn = e.target.querySelector('button[type="submit"]');
+  if (btn) btn.disabled = true;
+
+  // 乐观更新：先立刻把新留言插到顶部，提交不再等整列重新拉取（解决“卡”）
+  const optimistic = { nick, content, createdAt: new Date().toISOString() };
+  msgState.unshift(optimistic);
+  renderMessages();
+  e.target.reset();
+
+  try {
+    const res = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nick, content }),
+    });
+    if (!res.ok) {
+      const msg = await res.text().catch(() => '');
+      msgState.shift();            // 失败回滚
+      renderMessages();
+      alert(msg || '提交失败，请稍后再试');
+    }
+  } catch (err) {
+    msgState.shift();
+    renderMessages();
+    alert('网络错误，提交失败');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+});
+
+</script>
+
+</body>
+</html>

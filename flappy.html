@@ -34,11 +34,15 @@
   canvas { display:block; width:100%; height:auto; }
   #hud {
     position:absolute; top:14px; left:0; right:0;
-    font-size:44px; font-weight:700; color:#fff;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:0 16px;
+    font-size:30px; font-weight:700; color:#fff;
     text-shadow:0 2px 12px rgba(0,0,0,.35), 0 0 2px rgba(0,0,0,.4);
     pointer-events:none; z-index:5; letter-spacing:2px;
   }
   #hud.ready { font-size:18px; top:20px; color:#fff; opacity:.92; font-weight:500; letter-spacing:1px; }
+  #hud.ready #hudHearts { opacity:.3; }
+  #hudHearts { font-size:20px; letter-spacing:3px; text-shadow:0 2px 8px rgba(0,0,0,.45); }
   #startHint {
     position:absolute; bottom:70px; left:0; right:0; text-align:center;
     color:#fff; font-size:15px; font-weight:500; letter-spacing:2px;
@@ -115,7 +119,7 @@
   <h1>竹间蛙跳<small>Flappy Frog</small></h1>
   <div class="stage" id="stage">
     <canvas id="game" width="400" height="600"></canvas>
-    <div id="hud" class="ready">最高 <span id="bestTop">0</span></div>
+    <div id="hud" class="ready"><span id="hudScore">最高 <span id="bestTop">0</span></span><span id="hudHearts">❤❤❤</span></div>
     <div id="startHint">点击 / 空格 起跳</div>
     <div class="overlay" id="overlay">
       <div class="panel">
@@ -134,7 +138,7 @@
       </div>
     </div>
   </div>
-  <div class="foot">穿过竹缝 +1 分 · 碰到竹子或地面就挂</div>
+  <div class="foot">穿竹缝 +1 · 吃金币 +2 · 三滴血，撞竹掉血后短暂虚化</div>
 </div>
 
 <script>
@@ -143,6 +147,8 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const stage = document.getElementById('stage');
 const hud = document.getElementById('hud');
+const hudScore = document.getElementById('hudScore');
+const hudHearts = document.getElementById('hudHearts');
 const bestTop = document.getElementById('bestTop');
 const startHint = document.getElementById('startHint');
 const overlay = document.getElementById('overlay');
@@ -157,10 +163,13 @@ const W = 400, H = 600;
 const GRAVITY = 0.45, FLAP = -7.0, SCROLL = 2.2;
 const PIPE_W = 56, GROUND_H = 48, PIPE_SPACING = 215;
 const FROG_X = 96;
+const MAX_HEARTS = 3, HURT_IMMUNE = 1.5, GHOST_MS = 3;
 
 const frog = { y: H / 2, vy: 0, w: 32, h: 28, rot: 0, flapT: 0 };
 let pipes = [], clouds = [], farHills = [], hills = [];
+let items = [], floats = [];
 let score = 0, best = 0, state = 'ready';
+let hearts = MAX_HEARTS, invincible = 0;
 let lastTime = 0, elapsed = 0, dist = 0, deadTimer = 0, submitted = false;
 
 try { best = parseInt(localStorage.getItem('flappyBest') || '0', 10) || 0; } catch (e) {}
@@ -179,13 +188,16 @@ function initScenery() {
 
 function resetGame() {
   frog.y = H / 2; frog.vy = 0; frog.rot = 0; frog.flapT = 0;
-  pipes = []; score = 0; deadTimer = 0; submitted = false;
+  pipes = []; items = []; floats = [];
+  score = 0; deadTimer = 0; submitted = false;
+  hearts = MAX_HEARTS; invincible = 0;
+  renderHearts();
   overlay.classList.remove('show');
   submitBtn.disabled = false; submitBtn.textContent = '上榜';
   state = 'ready';
   startHint.classList.remove('hidden');
   hud.classList.add('ready');
-  hud.innerHTML = '最高 <span id="bestTop">' + best + '</span>';
+  hudScore.innerHTML = '最高 <span id="bestTop">' + best + '</span>';
 }
 
 function randomGap() {
@@ -208,14 +220,65 @@ function pipeParams(prev) {
 
 function spawnPipe() {
   const prev = pipes.length ? pipes[pipes.length - 1] : null;
-  pipes.push({ x: W + 20, ...pipeParams(prev), scored: false });
+  const params = pipeParams(prev);
+  pipes.push({ x: W + 20, ...params, scored: false });
+  // 每两根竹子中间刷一个道具（第 2、4、6…根）
+  if (pipes.length % 2 === 0) {
+    items.push({ x: W + 20 + PIPE_W / 2, y: params.gapC, type: pickItemType(), t: rand(0, 60) });
+  }
+}
+
+function pickItemType() {
+  const r = Math.random();
+  if (r < 0.55) return 'coin';      // 金币：+2 分
+  if (r < 0.70) return 'heart';     // 血包：+1 血
+  return 'ghost';                   // 虚化药水：3 秒护盾
+}
+
+function renderHearts() {
+  let s = '';
+  for (let i = 0; i < MAX_HEARTS; i++) s += i < hearts ? '❤' : '🖤';
+  hudHearts.textContent = s;
+}
+
+function addFloat(x, y, text, color, life) {
+  floats.push({ x, y, text, color, life: life || 1 });
+}
+
+function applyItem(it) {
+  if (it.type === 'coin') {
+    score += 2;
+    hudScore.textContent = String(score);
+    addFloat(it.x, it.y - 14, '+2', '#fde047', 1);
+  } else if (it.type === 'heart') {
+    if (hearts < MAX_HEARTS) {
+      hearts++;
+      renderHearts();
+      addFloat(it.x, it.y - 14, '+1 ♥', '#fca5a5', 1);
+    } else {
+      score += 1;
+      hudScore.textContent = String(score);
+      addFloat(it.x, it.y - 14, '+1', '#fde047', 1);
+    }
+  } else if (it.type === 'ghost') {
+    invincible = Math.max(invincible, GHOST_MS);
+    addFloat(it.x, it.y - 14, '虚化!', '#c4b5fd', 1.2);
+  }
+}
+
+function hurt() {
+  hearts--;
+  renderHearts();
+  addFloat(FROG_X + 16, frog.y - 4, '-1 ♥', '#f87171', 1);
+  if (hearts <= 0) { die(); return; }
+  invincible = HURT_IMMUNE;
 }
 
 function flap() {
   if (state === 'ready') {
     state = 'playing';
     hud.classList.remove('ready');
-    hud.textContent = '0';
+    hudScore.textContent = '0';
     startHint.classList.add('hidden');
   }
   if (state === 'playing') {
@@ -257,25 +320,57 @@ function update(dt) {
   }
 
   if (state === 'playing') {
+    invincible = Math.max(0, invincible - dt / 60);   // dt 为帧，/60 换算秒
     // 管道移动 + 得分
     for (const p of pipes) p.x -= SCROLL * dt;
     pipes = pipes.filter(p => p.x > -PIPE_W - 10);
     if (pipes.length === 0 || pipes[pipes.length - 1].x < W - PIPE_SPACING + 20) spawnPipe();
     for (const p of pipes) {
-      if (!p.scored && p.x + PIPE_W < FROG_X) { p.scored = true; score++; hud.textContent = String(score); }
+      if (!p.scored && p.x + PIPE_W < FROG_X) { p.scored = true; score++; hudScore.textContent = String(score); }
     }
-    // 碰撞：竹子
-    for (const p of pipes) {
-      if (FROG_X + frog.w > p.x && FROG_X < p.x + PIPE_W) {
-        const top = p.gapC - p.gap / 2, bot = p.gapC + p.gap / 2;
-        if (frog.y < top || frog.y + frog.h > bot) { die(); break; }
+    // 道具：移动 + 吃到
+    for (const it of items) {
+      it.x -= SCROLL * dt;
+      it.t += dt;
+    }
+    items = items.filter(i => i.x > -30);
+    for (const it of items) {
+      const dx = Math.abs(it.x - (FROG_X + frog.w / 2));
+      const dy = Math.abs(it.y - (frog.y + frog.h / 2));
+      if (dx < 20 && dy < 24) { applyItem(it); it.dead = true; }
+    }
+    items = items.filter(i => !i.dead);
+    // 飘字动画
+    for (const f of floats) { f.life -= dt; f.y -= 0.6 * dt; }
+    floats = floats.filter(f => f.life > 0);
+    // 碰撞：竹子（虚化免疫）
+    if (invincible <= 0) {
+      for (const p of pipes) {
+        if (FROG_X + frog.w > p.x && FROG_X < p.x + PIPE_W) {
+          const top = p.gapC - p.gap / 2, bot = p.gapC + p.gap / 2;
+          if (frog.y < top || frog.y + frog.h > bot) {
+            hurt();
+            if (state !== 'dead') frog.vy = -3;   // 撞竹弹开
+            break;
+          }
+        }
       }
+      // 碰撞：地面（掉血 + 弹起），天花板（顶住不掉血）
+      if (frog.y + frog.h > H - GROUND_H) {
+        frog.y = H - GROUND_H - frog.h;
+        if (frog.vy > 0) frog.vy = 0;
+        if (invincible <= 0) { hurt(); if (state !== 'dead') frog.vy = -6; }
+      }
+      if (frog.y < -26) { frog.y = -26; frog.vy = 0; }
+    } else {
+      // 虚化期间物理边界仍生效（不扣血）
+      if (frog.y + frog.h > H - GROUND_H) { frog.y = H - GROUND_H - frog.h; frog.vy = 0; }
+      if (frog.y < -26) { frog.y = -26; frog.vy = 0; }
     }
-    // 碰撞：地面 / 天花板
-    if (frog.y + frog.h > H - GROUND_H) { frog.y = H - GROUND_H - frog.h; die(); }
-    if (frog.y < -26) { frog.y = -26; frog.vy = 0; }
   } else if (state === 'dead') {
     deadTimer += dt;
+    for (const f of floats) { f.life -= dt; f.y -= 0.6 * dt; }
+    floats = floats.filter(f => f.life > 0);
     if (frog.y + frog.h > H - GROUND_H) {
       frog.y = H - GROUND_H - frog.h;
       state = 'over';
@@ -383,10 +478,102 @@ function drawPipes() {
   }
 }
 
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawCoin(x, y, t) {
+  const sq = 1 + Math.sin(t * 0.18) * 0.1;   // 呼吸缩放
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(sq, sq);
+  // 金色圆 + 高光
+  const g = ctx.createRadialGradient(-3, -3, 2, 0, 0, 12);
+  g.addColorStop(0, '#fde68a');
+  g.addColorStop(1, '#d97706');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#92400e'; ctx.lineWidth = 2; ctx.stroke();
+  // 铜钱方孔
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(-3.5, -3.5, 7, 7);
+  ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1;
+  ctx.strokeRect(-3.5, -3.5, 7, 7);
+  ctx.restore();
+}
+
+function drawHeart(x, y, t) {
+  const s = 1 + Math.sin(t * 0.2) * 0.08;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.moveTo(0, 6);
+  ctx.bezierCurveTo(-10, -3, -7, -10, 0, -4);
+  ctx.bezierCurveTo(7, -10, 10, -3, 0, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#7f1d1d'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.65)';
+  ctx.beginPath(); ctx.arc(-3, -4, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawGhost(x, y, t) {
+  const bob = Math.sin(t * 0.2) * 2;
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.shadowColor = 'rgba(167,139,250,.9)';
+  ctx.shadowBlur = 12;
+  // 药水瓶身
+  ctx.fillStyle = 'rgba(139,92,246,.92)';
+  rr(-8, -3, 16, 13, 4); ctx.fill();
+  // 瓶颈
+  ctx.fillStyle = '#a78bfa';
+  ctx.fillRect(-3.5, -7, 7, 5);
+  // 瓶塞
+  ctx.fillStyle = '#6d28d9';
+  ctx.fillRect(-4.5, -11, 9, 5);
+  ctx.shadowBlur = 0;
+  // 问号
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('?', 0, 2.5);
+  ctx.restore();
+}
+
+function drawItems() {
+  for (const it of items) {
+    if (it.type === 'coin') drawCoin(it.x, it.y, it.t);
+    else if (it.type === 'heart') drawHeart(it.x, it.y, it.t);
+    else drawGhost(it.x, it.y, it.t);
+  }
+}
+
+function drawFloats() {
+  for (const f of floats) {
+    ctx.globalAlpha = Math.min(1, Math.max(0, f.life * 1.4));
+    ctx.fillStyle = f.color;
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(f.text, f.x, f.y);
+  }
+  ctx.globalAlpha = 1;
+}
+
 function drawFrog() {
   const fx = FROG_X + frog.w / 2;
   const fy = frog.y + frog.h / 2;
   const stretch = 1 + frog.flapT * 0.14;
+  if (invincible > 0) ctx.globalAlpha = Math.sin(elapsed * 0.45) > 0 ? 0.35 : 0.8;
   ctx.save();
   ctx.translate(fx, fy);
   ctx.rotate(frog.rot);
@@ -425,6 +612,7 @@ function drawFrog() {
   ctx.beginPath(); ctx.arc(-8, -4, 2.6, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath(); ctx.arc(8, -4, 2.6, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
+  ctx.globalAlpha = 1;
 }
 
 function drawGround() {
@@ -451,7 +639,9 @@ function draw() {
   drawFarMountains();
   drawHills();
   drawPipes();
+  drawItems();
   drawFrog();
+  drawFloats();
   drawGround();
 }
 

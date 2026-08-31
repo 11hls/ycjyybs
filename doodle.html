@@ -71,7 +71,7 @@ tailwind.config = {
   <div class="page-glow"></div>
   <div class="max-w-6xl mx-auto px-6 flex flex-col items-center gap-y-4">
     <h1 class="fade-up d1 text-3xl lg:text-5xl font-bold text-white !leading-tight">涂鸦<span class="text-gradient">跳跃</span></h1>
-    <p class="fade-up d2 text-sm text-soft">← → 或 A/D 移动，手机端点按画布左右两侧，掉落到底部可重新开始</p>
+    <p class="fade-up d2 text-sm text-soft">← → 或 A/D 移动，手机端点按画布左右两侧。小心枯荷叶，一踩就碎！</p>
   </div>
 </section>
 
@@ -99,14 +99,19 @@ tailwind.config = {
 </footer>
 
 <script>
-/* 涂鸦跳跃（Canvas）。人物/平台为几何占位，可替换成素材图 */
+/* 青蛙跳荷叶（模仿 Doodle Jump 难度：普通/移动/枯荷叶三档平台，随分数变难） */
 const canvas = document.getElementById('doodleCanvas');
 const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('gameScore');
 
 const W = canvas.width, H = canvas.height;
-const GRAVITY = 0.32, JUMP = -10.5, MOVE = 4.2;
+const GRAVITY = 0.35, JUMP = -11, MOVE = 1.5;   // 跳跃高度约 173px；慢速移动让每跳水平漂移(≈95px)落在平台列覆盖(≈110px)内
 const MAX_FOLLOW = 12;   // 相机平滑跟随：每 60fps 帧最多追 12px
+const LOTUS_COLOR = {
+  normal:  { fill: '#22c55e', edge: '#166534' },
+  moving:  { fill: '#38bdf8', edge: '#1e40af' },
+  fragile: { fill: '#d97706', edge: '#78350f' },
+};
 let lastTime = 0;
 
 let player, platforms, score, cameraY, gameOver, keys = { left:false, right:false };
@@ -116,27 +121,56 @@ function initGame() {
   platforms = [];
   score = 0; cameraY = 0; gameOver = false;
   scoreEl.textContent = '0';
-  platforms.push({ x: W/2 - 30, y: H - 40, w: 60 });
+  let ty = H - 40, prevX = W/2 - 55;   // 相邻平台水平偏移 ≤ 60px，保证直线上升也踩得到
+  platforms.push({ x: prevX, y: ty, w: 110, type: 'normal', vx: 0, broken: false, life: 0 });
   for (let i = 1; i <= 14; i++) {
-    platforms.push({
-      x: Math.random() * (W - 60),
-      y: H - 40 - i * 55 - Math.random() * 25,
-      w: 55 + Math.random() * 15,
-    });
+    ty -= 60 + Math.random() * 30;
+    if (i % 2 === 0) prevX = Math.max(0, Math.min(W - 70, player.x + (Math.random() * 60 - 30)));   // 初始段也锚定玩家
+    const p = makePlatform(ty, prevX);
+    prevX = p.x;
+    platforms.push(p);
   }
+}
+
+function pickType() {
+  const r = Math.random();
+  if (score > 800) return r < 0.25 ? 'moving' : (r < 0.40 ? 'fragile' : 'normal');
+  if (score > 300) return r < 0.18 ? 'moving' : (r < 0.26 ? 'fragile' : 'normal');
+  return r < 0.12 ? 'moving' : 'normal';
+}
+
+function makePlatform(y, prevX, forceEdge) {
+  const type = pickType();
+  let x;
+  if (forceEdge) {   // 强制靠边平台：左右边缘交替，wrap 回屏后也有落脚点
+    x = Math.random() < .5 ? Math.random() * 50 : W - 70 - Math.random() * 50;
+  } else {
+    x = prevX == null ? Math.random() * (W - 70) : prevX + (Math.random() * 120 - 60);   // 相邻平台水平偏移 ≤ 60px
+  }
+  x = Math.max(0, Math.min(W - 70, x));
+  return {
+    x, y,
+    w: 70 + Math.random() * 30,
+    type,
+    vx: type === 'moving' ? (0.6 + Math.random() * 1.0) * (Math.random() < .5 ? -1 : 1) : 0,
+    broken: false, life: 0,
+  };
 }
 
 function spawnPlatforms() {
   let top = Math.min(...platforms.map(p => p.y));
+  let prevX = platforms.find(p => p.y === top).x;
+  let n = 0;
   while (top > -60) {   // 保证屏幕上方始终有新平台可踩
-    top -= 55 + Math.random() * 25;
-    platforms.push({
-      x: Math.random() * (W - 60),
-      y: top,
-      w: 55 + Math.random() * 15,
-    });
+    top -= 60 + Math.random() * 30;
+    // 每 2 个平台把锚点拉回玩家附近，平台列不会漂离玩家导致踩空
+    if (n % 2 === 0) prevX = Math.max(0, Math.min(W - 70, player.x + (Math.random() * 60 - 30)));
+    const p = makePlatform(top, prevX, n % 4 === 3);
+    n++;
+    prevX = p.x;
+    platforms.push(p);
   }
-  platforms = platforms.filter(p => p.y < H + 60);   // 清理屏幕下方外的旧平台
+  platforms = platforms.filter(p => p.y < H + 60 && !(p.broken && p.life <= 0));   // 清理屏幕外旧平台和碎掉的枯荷叶
 }
 
 function updateGame(dt) {
@@ -149,10 +183,25 @@ function updateGame(dt) {
   player.vy += GRAVITY * dt;
   player.y  += player.vy * dt;
 
+  // 移动荷叶往返移动；碎荷叶淡出计时
+  for (const p of platforms) {
+    if (p.type === 'moving') {
+      p.x += p.vx * dt;
+      if (p.x < 0) p.vx = Math.abs(p.vx);
+      if (p.x + p.w > W) p.vx = -Math.abs(p.vx);
+    }
+    if (p.broken) p.life -= dt;
+  }
+  platforms = platforms.filter(p => !(p.broken && p.life <= 0));   // 碎裂动画结束立即移除
   if (player.vy > 0) {
     for (const p of platforms) {
-      if (player.x + player.w > p.x && player.x < p.x + p.w &&
+      if (p.broken) continue;
+      if (player.x + player.w > p.x - 6 && player.x < p.x + p.w + 6 &&   // 水平 ±6px 容错，边缘擦过也能接住（Doodle 手感）
           player.y + player.h > p.y && player.y + player.h - player.vy * dt <= p.y + 6) {
+        if (p.type === 'fragile') {   // 枯荷叶：一踩就碎，不反弹
+          p.broken = true; p.life = 16;
+          break;
+        }
         player.vy = JUMP;
         break;
       }
@@ -174,6 +223,92 @@ function updateGame(dt) {
   }
 }
 
+function drawLotus(p) {
+  const c = LOTUS_COLOR[p.type] || LOTUS_COLOR.normal;
+  const h = 10;
+  const cx = p.x + p.w / 2, cy = p.y + h / 2;
+  const fade = p.broken ? Math.max(p.life / 16, 0.15) : 1;
+  const scale = p.broken ? Math.max(p.life / 16, 0.05) : 1;
+  ctx.save();
+  ctx.globalAlpha = fade;
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  // 叶身
+  ctx.fillStyle = c.fill;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, p.w / 2, h / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = c.edge;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // V 形缺口（右上）
+  ctx.fillStyle = '#09090b';
+  ctx.beginPath();
+  ctx.moveTo(p.w / 2 - 6, -h / 2 + 1);
+  ctx.lineTo(p.w / 2 - 1, 0);
+  ctx.lineTo(p.w / 2 - 12, -h / 2 + 1);
+  ctx.closePath();
+  ctx.fill();
+  // 叶脉
+  ctx.strokeStyle = c.edge;
+  ctx.globalAlpha *= 0.55;
+  ctx.beginPath();
+  ctx.moveTo(-p.w / 2 + 2, 0);
+  ctx.lineTo(p.w / 2 - 4, 0);
+  ctx.stroke();
+  for (let i = 1; i <= 2; i++) {
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-i * p.w / 7, -h / 2 + 1);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-i * p.w / 7, h / 2 - 1);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFrog() {
+  const fx = player.x + player.w / 2;
+  const fy = player.y + player.h;
+  const stretch = player.vy < 0 ? 1.12 : player.vy > 0 ? 0.9 : 1;   // 上升拉长，下落压扁
+  ctx.save();
+  ctx.translate(fx, fy);
+  ctx.scale(1 / stretch, stretch);
+  // 后腿（上升收拢，下落张开）
+  const spread = player.vy < 0 ? 6 : 11;
+  ctx.fillStyle = '#16a34a';
+  ctx.beginPath(); ctx.ellipse(-9, -3, 4.5, 3, -0.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(9, -3, 4.5, 3, 0.5, 0, Math.PI * 2); ctx.fill();
+  // 身体
+  ctx.fillStyle = '#22c55e';
+  ctx.beginPath();
+  ctx.ellipse(0, -8, 10, 8.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // 腹部
+  ctx.fillStyle = '#bbf7d0';
+  ctx.beginPath();
+  ctx.ellipse(0, -5.5, 6.5, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // 凸眼 + 瞳孔
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-5.5, -16, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5.5, -16, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#09090b';
+  ctx.beginPath(); ctx.arc(-5, -15.5, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6, -15.5, 1.8, 0, Math.PI * 2); ctx.fill();
+  // 微笑
+  ctx.strokeStyle = '#14532d';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(0, -7, 4, 0.15 * Math.PI, 0.85 * Math.PI);
+  ctx.stroke();
+  // 前腿
+  ctx.fillStyle = '#22c55e';
+  ctx.beginPath(); ctx.arc(-8, -4, 2.6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(8, -4, 2.6, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
 function drawGame() {
   ctx.clearRect(0, 0, W, H);
   // 背景网格
@@ -182,24 +317,13 @@ function drawGame() {
   for (let x = 0; x <= W; x += 32) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
   for (let y = 0; y <= H; y += 32) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 
-  // 平台（蓝色圆角矩形）
-  ctx.fillStyle = '#3b82f6';
+  // 荷叶平台
   platforms.forEach(p => {
-    if (p.y > -20 && p.y < H + 20) {
-      ctx.beginPath();
-      ctx.roundRect(p.x, p.y, p.w, 8, 4);
-      ctx.fill();
-    }
+    if (p.y > -20 && p.y < H + 20 && !(p.broken && p.life <= 0)) drawLotus(p);
   });
 
-  // 人物（天蓝方块 + 眼睛）
-  ctx.fillStyle = '#38bdf8';
-  ctx.beginPath();
-  ctx.roundRect(player.x, player.y, player.w, player.h, 6);
-  ctx.fill();
-  ctx.fillStyle = '#09090b';
-  ctx.fillRect(player.x + 4,  player.y + 6, 3, 3);
-  ctx.fillRect(player.x + 13, player.y + 6, 3, 3);
+  // 青蛙主角
+  drawFrog();
 
   if (gameOver) {
     ctx.fillStyle = 'rgba(9,9,11,.8)';
@@ -207,7 +331,7 @@ function drawGame() {
     ctx.fillStyle = '#a3a3a3';
     ctx.font = '14px "Noto Sans SC", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('掉下去啦！得分 ' + score, W/2, H/2 - 10);
+    ctx.fillText('掉水里啦！得分 ' + score, W/2, H/2 - 10);
     ctx.fillStyle = '#38bdf8';
     ctx.fillText('点击画布重新开始', W/2, H/2 + 16);
   }

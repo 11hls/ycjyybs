@@ -105,7 +105,7 @@ tailwind.config = {
       <canvas id="doodleCanvas" width="320" height="420"
         class="w-full max-w-[320px] mx-auto rounded-lg border border-line bg-bg touch-none cursor-pointer"></canvas>
       <div class="mt-4 text-center">
-        <button id="gameReset" class="btn-ghost rounded px-3 py-1.5 text-xs text-soft">重新开始</button>
+        <button id="gameReset" type="button" class="btn-ghost rounded px-3 py-1.5 text-xs text-soft">重新开始</button>
       </div>
     </div>
 
@@ -162,7 +162,9 @@ const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('gameScore');
 
 const W = canvas.width, H = canvas.height;
-const GRAVITY = 0.35, JUMP = -11, MOVE = 4.5;
+const GRAVITY = 0.32, JUMP = -10.5, MOVE = 4.2;
+const MAX_FOLLOW = 12;   // 相机平滑跟随：每 60fps 帧最多追 12px
+let lastTime = 0;
 
 let player, platforms, score, cameraY, gameOver, keys = { left:false, right:false };
 
@@ -183,39 +185,40 @@ function initGame() {
 
 function spawnPlatforms() {
   let top = Math.min(...platforms.map(p => p.y));
-  while (top > cameraY - 60) {
+  while (top > -60) {   // 保证屏幕上方始终有新平台可踩
+    top -= 55 + Math.random() * 25;
     platforms.push({
       x: Math.random() * (W - 60),
-      y: top - 55 - Math.random() * 25,
+      y: top,
       w: 55 + Math.random() * 15,
     });
-    top = Math.min(...platforms.map(p => p.y));
   }
-  platforms = platforms.filter(p => p.y < cameraY + H + 60);
+  platforms = platforms.filter(p => p.y < H + 60);   // 清理屏幕下方外的旧平台
 }
 
-function updateGame() {
+function updateGame(dt) {
   if (gameOver) return;
-  if (keys.left)  player.x -= MOVE;
-  if (keys.right) player.x += MOVE;
+  if (keys.left)  player.x -= MOVE * dt;
+  if (keys.right) player.x += MOVE * dt;
   if (player.x < -player.w) player.x = W;
   if (player.x > W) player.x = -player.w;
 
-  player.vy += GRAVITY;
-  player.y  += player.vy;
+  player.vy += GRAVITY * dt;
+  player.y  += player.vy * dt;
 
   if (player.vy > 0) {
     for (const p of platforms) {
       if (player.x + player.w > p.x && player.x < p.x + p.w &&
-          player.y + player.h > p.y && player.y + player.h - player.vy <= p.y + 6) {
+          player.y + player.h > p.y && player.y + player.h - player.vy * dt <= p.y + 6) {
         player.vy = JUMP;
         break;
       }
     }
   }
-  const line = cameraY + H * 0.4;
+  const line = H * 0.4;   // 跟随线固定在屏幕 40% 高度（原 bug：line= cameraY+H*0.4 混用世界/屏幕坐标，跟随线会漂出屏幕，导致小球跑出屏外视角也不跟）
   if (player.y < line) {
-    const dy = line - player.y;
+    // 平滑跟随：每帧最多移动 MAX_FOLLOW*dt，视角不会瞬移甩开小球
+    const dy = Math.min(line - player.y, MAX_FOLLOW * dt);
     cameraY -= dy;
     player.y += dy;
     platforms.forEach(p => p.y += dy);
@@ -223,7 +226,7 @@ function updateGame() {
     scoreEl.textContent = score;
     spawnPlatforms();
   }
-  if (player.y > cameraY + H + 40) {
+  if (player.y > H + 40) {   // 掉出屏幕底部判定（屏幕坐标）
     gameOver = true;
   }
 }
@@ -267,8 +270,14 @@ function drawGame() {
   }
 }
 
-function loop() {
-  updateGame();
+function loop(t) {
+  // 帧率归一化：以 60fps 为基准，高分屏(120/144Hz)不再让游戏速度翻倍
+  if (!lastTime) lastTime = t;
+  let dt = (t - lastTime) / (1000 / 60);
+  lastTime = t;
+  if (dt < 0.001) dt = 0.001;
+  if (dt > 3) dt = 3;   // 切后台回来时防止巨帧跳变
+  updateGame(dt);
   drawGame();
   requestAnimationFrame(loop);
 }
@@ -292,7 +301,7 @@ canvas.addEventListener('pointerleave', () => { keys.left = false; keys.right = 
 document.getElementById('gameReset').addEventListener('click', initGame);
 
 initGame();
-loop();
+requestAnimationFrame(loop);   // 直接交给 rAF 启动，确保首帧拿到时间戳（同步调 loop() 会因 t=undefined 拿到 NaN 的 dt）
 </script>
 
 </body>

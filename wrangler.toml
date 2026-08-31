@@ -1,0 +1,7 @@
+name = "ycjyybs"
+compatibility_date = "2024-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blog-db"
+database_id = "c4e92951-965d-497b-8e7d-4ffb4ca2f92b"

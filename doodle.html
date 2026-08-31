@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>小游戏 | 余常进的个人主页</title>
-<meta name="description" content="余常进的个人主页 - 小游戏：猜数字、涂鸦跳跃" />
+<title>涂鸦跳跃 | 余常进的个人主页</title>
+<meta name="description" content="余常进的个人主页 - 小游戏：涂鸦跳跃" />
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
@@ -46,12 +46,10 @@ tailwind.config = {
   .btn-ghost { transition:all .3s ease; }
   .btn-ghost:hover { background:rgba(255,255,255,.06); transform:translateY(-2px); }
   .vcard { background:#0c0c0e; border:1px solid #262626; border-radius:1rem; transition:all .3s ease; }
-  .vcard:hover { transform:translateY(-4px); border-color:rgba(59,130,246,.4); box-shadow:0 10px 40px -10px rgba(59,130,246,.15); }
   .fade-up { opacity:0; transform:translateY(20px); animation:fadeUp .8s ease forwards; }
   @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
   .d1{animation-delay:.05s}.d2{animation-delay:.15s}
   @media (prefers-reduced-motion: reduce) { .fade-up{animation:none;opacity:1;transform:none} html{scroll-behavior:auto} }
-  input:focus { outline:none; border-color:rgba(59,130,246,.6); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
 </style>
 </head>
 <body class="font-sans text-neutral-200 antialiased overflow-x-hidden">
@@ -64,8 +62,7 @@ tailwind.config = {
     </a>
     <div class="flex items-center gap-6 text-sm font-medium text-soft">
       <a href="./index.html" class="hover:text-white transition-colors">← 返回主页</a>
-      <a href="#guess" class="hidden sm:inline hover:text-white transition-colors">猜数字</a>
-      <a href="#doodle" class="hidden sm:inline hover:text-white transition-colors">涂鸦跳跃</a>
+      <a href="./guess.html" class="hidden sm:inline hover:text-white transition-colors">🎯 猜数字 →</a>
     </div>
   </nav>
 </header>
@@ -73,42 +70,24 @@ tailwind.config = {
 <section class="relative pt-20 pb-12 text-center">
   <div class="page-glow"></div>
   <div class="max-w-6xl mx-auto px-6 flex flex-col items-center gap-y-4">
-    <h1 class="fade-up d1 text-3xl lg:text-5xl font-bold text-white !leading-tight">摸鱼<span class="text-gradient">小游戏</span></h1>
-    <p class="fade-up d2 text-sm text-soft">两个纯前端小游戏，均支持桌面与移动端</p>
+    <h1 class="fade-up d1 text-3xl lg:text-5xl font-bold text-white !leading-tight">涂鸦<span class="text-gradient">跳跃</span></h1>
+    <p class="fade-up d2 text-sm text-soft">← → 或 A/D 移动，手机端点按画布左右两侧，掉落到底部可重新开始</p>
   </div>
 </section>
 
 <section class="pb-24">
-  <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-6">
-
-    <div id="guess" class="vcard p-8">
-      <h3 class="font-semibold text-white text-lg mb-2">🎯 猜数字</h3>
-      <p class="text-soft text-sm mb-6">我心里想了一个 1 ~ 100 的数，看你几步能猜中</p>
-      <div class="flex gap-3">
-        <input id="guessInput" type="number" min="1" max="100" placeholder="1 - 100"
-          class="flex-1 rounded-md bg-bg border border-line px-4 py-2.5 text-sm text-white placeholder:text-dim transition-all" />
-        <button id="guessBtn" class="btn-primary rounded-md text-sm font-semibold px-6 py-2.5">猜</button>
-      </div>
-      <p id="guessMsg" class="text-sm text-soft mt-5 h-5">输入数字开始挑战 ↓</p>
-      <div class="mt-4 flex items-center justify-between text-xs text-dim">
-        <span>已猜次数：<span id="guessCount" class="text-brand2">0</span></span>
-        <button id="guessReset" class="btn-ghost rounded px-2 py-1">重新开始</button>
-      </div>
-    </div>
-
+  <div class="max-w-xl mx-auto px-6">
     <div id="doodle" class="vcard p-8">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="font-semibold text-white text-lg">🐸 涂鸦跳跃</h3>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-white text-lg">🐸 跳起来</h3>
         <span class="text-xs text-dim">得分：<span id="gameScore" class="text-brand2">0</span></span>
       </div>
-      <p class="text-soft text-sm mb-4">← → 或 A/D 移动，手机端点按画布左右两侧，掉落到底部可重新开始</p>
       <canvas id="doodleCanvas" width="320" height="420"
         class="w-full max-w-[320px] mx-auto rounded-lg border border-line bg-bg touch-none cursor-pointer"></canvas>
       <div class="mt-4 text-center">
         <button id="gameReset" type="button" class="btn-ghost rounded px-3 py-1.5 text-xs text-soft">重新开始</button>
       </div>
     </div>
-
   </div>
 </section>
 
@@ -120,43 +99,7 @@ tailwind.config = {
 </footer>
 
 <script>
-/* 游戏 1：猜数字 */
-let secret = 0, guessTimes = 0;
-const guessInput = document.getElementById('guessInput');
-const guessMsg   = document.getElementById('guessMsg');
-const guessCount = document.getElementById('guessCount');
-
-function newGame() {
-  secret = Math.floor(Math.random() * 100) + 1;
-  guessTimes = 0;
-  guessCount.textContent = '0';
-  guessMsg.textContent = '输入数字开始挑战 ↓';
-  guessMsg.className = 'text-sm text-soft mt-5 h-5';
-  guessInput.value = '';
-}
-newGame();
-
-document.getElementById('guessBtn').addEventListener('click', () => {
-  const v = Number(guessInput.value);
-  if (!v || v < 1 || v > 100) { guessMsg.textContent = '请输入 1 ~ 100 之间的数字'; return; }
-  guessTimes++;
-  guessCount.textContent = guessTimes;
-  if (v === secret) {
-    guessMsg.textContent = `🎉 猜对了！就是 ${secret}，共用了 ${guessTimes} 次`;
-    guessMsg.className = 'text-sm text-brand2 mt-5 h-5';
-  } else if (v < secret) {
-    guessMsg.textContent = `↗ 偏小了，往大猜`;
-    guessMsg.className = 'text-sm text-amber-400 mt-5 h-5';
-  } else {
-    guessMsg.textContent = `↘ 偏大了，往小猜`;
-    guessMsg.className = 'text-sm text-sky-400 mt-5 h-5';
-  }
-  guessInput.value = '';
-});
-guessInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('guessBtn').click(); } });
-document.getElementById('guessReset').addEventListener('click', newGame);
-
-/* 游戏 2：涂鸦跳跃（Canvas）。人物/平台为几何占位，可替换成素材图 */
+/* 涂鸦跳跃（Canvas）。人物/平台为几何占位，可替换成素材图 */
 const canvas = document.getElementById('doodleCanvas');
 const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('gameScore');

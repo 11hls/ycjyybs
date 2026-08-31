@@ -186,7 +186,7 @@
       <div class="lg-item"><canvas class="lg-icon" data-item="plus" width="88" height="88"></canvas><div class="lg-text"><b>加一药水</b><span>之后每根竹子永久 +1 分</span></div></div>
       <div class="lg-item"><canvas class="lg-icon" data-item="double" width="88" height="88"></canvas><div class="lg-text"><b>加倍药水</b><span>当前分数直接翻倍</span></div></div>
     </div>
-    <div class="lg-foot">温馨提示：道具随机刷在竹间空隙里，位置不保证能吃得到，能吃到算赚到～</div>
+    <div class="lg-foot">温馨提示：道具随机刷新，位置不保证能吃得到</div>
   </aside>
 </div>
 
@@ -824,8 +824,8 @@ function submitScore() {
 /* ---------- 事件 ---------- */
 
 stage.addEventListener('pointerdown', e => {
+  if (state === 'over') return;   // 死亡后：不 preventDefault，让输入框/按钮正常获得焦点
   e.preventDefault();
-  if (state === 'over') return;
   flap();
 });
 

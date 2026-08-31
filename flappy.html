@@ -13,18 +13,22 @@
     background-image:radial-gradient(ellipse at 50% -20%, rgba(34,197,94,.14), transparent 60%);
     color:#e2e8f0;
     display:flex; align-items:center; justify-content:center;
-    min-height:100vh; padding:16px; overflow:hidden;
+    min-height:100vh; padding:20px; overflow:hidden;
   }
-  .wrap { text-align:center; }
+  .wrap {
+    display:flex; align-items:center; justify-content:center;
+    gap:28px; flex-wrap:wrap;
+  }
+  .main { display:flex; flex-direction:column; align-items:center; gap:14px; }
   h1 {
-    font-size:22px; font-weight:600; letter-spacing:2px;
-    margin-bottom:14px; color:#f0fdf4;
+    font-size:20px; font-weight:600; letter-spacing:2px;
+    color:#f0fdf4;
     text-shadow:0 2px 12px rgba(34,197,94,.35);
   }
   h1 small { font-size:12px; font-weight:400; color:#7dd3a8; letter-spacing:1px; margin-left:8px; }
   .stage {
     position:relative; display:inline-block;
-    width:min(400px, 92vw);
+    width:min(560px, 92vw, calc((100vh - 150px) * 2 / 3));
     border-radius:18px; overflow:hidden;
     box-shadow:0 24px 60px -18px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.08);
     background:#bae6fd;
@@ -111,14 +115,46 @@
     transition:filter .15s;
   }
   .restart-btn:hover { filter:brightness(1.12); }
-  .foot { margin-top:12px; font-size:12px; color:#64748b; letter-spacing:1px; }
+  .foot { margin-top:2px; font-size:12px; color:#64748b; letter-spacing:1px; }
+  /* ---- 道具图鉴 ---- */
+  .legend {
+    width:216px; padding:18px 16px 14px;
+    background:rgba(15,23,42,.72);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:16px;
+    backdrop-filter:blur(8px);
+    box-shadow:0 18px 44px -18px rgba(0,0,0,.6);
+  }
+  .lg-title {
+    font-size:14px; font-weight:600; color:#a7f3d0;
+    letter-spacing:2px; margin-bottom:14px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .lg-items { display:flex; flex-direction:column; gap:12px; }
+  .lg-item { display:flex; align-items:center; gap:10px; }
+  .lg-icon { width:40px; height:40px; flex-shrink:0; }
+  .lg-text { display:flex; flex-direction:column; min-width:0; }
+  .lg-text b { font-size:13px; color:#f0fdf4; }
+  .lg-text span { font-size:11px; color:#94a3b8; line-height:1.4; }
+  .lg-foot {
+    margin-top:14px; padding-top:10px;
+    border-top:1px dashed rgba(255,255,255,.12);
+    font-size:11px; color:#7dd3a8; line-height:1.6;
+  }
+  @media (max-width: 920px) {
+    .wrap { flex-direction:column; gap:16px; }
+    .legend { width:min(440px, 94vw); }
+    .lg-items { flex-direction:row; flex-wrap:wrap; }
+    .lg-item { width:calc(50% - 5px); }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="main">
   <h1>竹间蛙跳<small>Flappy Frog</small></h1>
   <div class="stage" id="stage">
-    <canvas id="game" width="400" height="600"></canvas>
+    <canvas id="game" width="800" height="1200"></canvas>
     <div id="hud" class="ready"><span id="hudScore">最高 <span id="bestTop">0</span></span><span id="hudHearts">❤❤❤</span></div>
     <div id="startHint">点击 / 空格 起跳</div>
     <div class="overlay" id="overlay">
@@ -138,13 +174,27 @@
       </div>
     </div>
   </div>
-  <div class="foot">穿竹缝 +1 · 空隙里吃道具：金币/血包/虚化/加一/翻倍 · 三滴血撞竹虚化</div>
+  <div class="foot">点击 / 空格 起跳 · 穿过竹缝 +1 · 三滴血，撞竹后虚化免疫</div>
+  </div>
+
+  <aside class="legend">
+    <div class="lg-title">🎒 道具图鉴</div>
+    <div class="lg-items">
+      <div class="lg-item"><canvas class="lg-icon" data-item="coin" width="88" height="88"></canvas><div class="lg-text"><b>金币</b><span>吃到 +2 分</span></div></div>
+      <div class="lg-item"><canvas class="lg-icon" data-item="heart" width="88" height="88"></canvas><div class="lg-text"><b>血包</b><span>回 1 滴血，满血转 +1 分</span></div></div>
+      <div class="lg-item"><canvas class="lg-icon" data-item="ghost" width="88" height="88"></canvas><div class="lg-text"><b>虚化药水</b><span>3 秒护盾，撞竹不掉血</span></div></div>
+      <div class="lg-item"><canvas class="lg-icon" data-item="plus" width="88" height="88"></canvas><div class="lg-text"><b>加一药水</b><span>之后每根竹子永久 +1 分</span></div></div>
+      <div class="lg-item"><canvas class="lg-icon" data-item="double" width="88" height="88"></canvas><div class="lg-text"><b>加倍药水</b><span>当前分数直接翻倍</span></div></div>
+    </div>
+    <div class="lg-foot">道具刷在左右两根竹子之间的空隙里，得主动飞过去吃</div>
+  </aside>
 </div>
 
 <script>
 'use strict';
 const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+let ctx = canvas.getContext('2d');
+ctx.scale(2, 2);   // 物理分辨率 800x1200，逻辑坐标保持 400x600，绘制代码零改动
 const stage = document.getElementById('stage');
 const hud = document.getElementById('hud');
 const hudScore = document.getElementById('hudScore');
@@ -790,7 +840,26 @@ restartBtn.addEventListener('click', e => { e.stopPropagation(); resetGame(); })
 
 initScenery();
 resetGame();
+paintLegendIcons();
 requestAnimationFrame(loop);
+
+/* ---------- 道具图鉴：复用游戏绘制函数，保证图标与游戏内一致 ---------- */
+function paintLegendIcons() {
+  document.querySelectorAll('.lg-icon').forEach(cv => {
+    const lc = cv.getContext('2d');
+    lc.scale(2, 2);
+    lc.translate(22, 22);
+    const saved = ctx;
+    ctx = lc;
+    const type = cv.dataset.item, t = 16;
+    if (type === 'coin') drawCoin(0, 0, t);
+    else if (type === 'heart') drawHeart(0, 0, t);
+    else if (type === 'ghost') drawGhost(0, 0, t);
+    else if (type === 'plus') drawPlusPotion(0, 0, t);
+    else drawDoublePotion(0, 0, t);
+    ctx = saved;
+  });
+}
 </script>
 </body>
 </html>

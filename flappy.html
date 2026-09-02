@@ -279,6 +279,7 @@ let pipeMult = 1; // 万年灵乳叠加的穿竹得分倍数（初始 1 倍）
 let pipeSeq = 0; // 竹子生成序号（独立计数器，不受 pipes 数组裁剪影响）
 let maxHearts = MAX_HEARTS, hearts = MAX_HEARTS, invincible = 0, lifeItemLeft = MAX_LIFE_ITEM, heartItemLeft = MAX_HEART_ITEM;
 let lastTime = 0, elapsed = 0, dist = 0, deadTimer = 0, submitted = false;
+let overAt = 0;   // 结算面板弹出时间戳：0.6 秒内禁止空格重开，防死亡瞬间狂按误触
 
 try { let n = localStorage.getItem('flappyNick') || ''; if (n === '测试') n = ''; nickInput.value = n; } catch (e) {}
 
@@ -305,7 +306,7 @@ function resetGame() {
   state = 'ready';
   startHint.classList.remove('hidden');
   hud.classList.add('ready');
-  hudScore.textContent = '0';
+  renderScore();   // score 已归零，此处同时复位自适应字号
 }
 
 function randomGap() {
@@ -361,6 +362,13 @@ function renderHearts() {
   hudHearts.textContent = '❤ ' + hearts + '/' + maxHearts;
 }
 
+function renderScore() {
+  const s = String(score);
+  hudScore.textContent = s;
+  // 分数很长时自动缩小字号，避免挤压右侧血量显示
+  hudScore.style.fontSize = s.length >= 10 ? '16px' : s.length >= 8 ? '22px' : '';
+}
+
 function addFloat(x, y, text, color, life) {
   const L = 96;  // 96 帧 ≈ 1.6 秒（dt 单位为帧，60fps 下 1 帧 = 1/60 秒）
   floats.push({ x, y, text, color, life: L, maxLife: L });
@@ -369,7 +377,7 @@ function addFloat(x, y, text, color, life) {
 function applyItem(it) {
   if (it.type === 'coin') {
     score += 2 * pipeMult;                    // 金币：获得穿过两次竹子的分数
-    hudScore.textContent = String(score);
+    renderScore();
     addFloat(it.x, it.y - 14, '+' + (2 * pipeMult), '#fde047', 1);
   } else if (it.type === 'heart') {
     if (hearts < maxHearts) {
@@ -378,7 +386,7 @@ function applyItem(it) {
       addFloat(it.x, it.y - 14, '+1 ♥', '#fca5a5', 1);
     } else {
       score *= 2;
-      hudScore.textContent = String(score);
+      renderScore();
       addFloat(it.x, it.y - 14, '×2', '#fca5a5', 1);
     }
   } else if (it.type === 'ghost') {
@@ -393,14 +401,16 @@ function applyItem(it) {
       maxHearts++; hearts++;            // 生命上限 +1，同时回 1 滴
       renderHearts();
       addFloat(it.x, it.y - 14, '上限+1 ♥', '#f9a8d4', 1.2);
+      // 吃满第 5 个：明确告知后续道具变化（图鉴不再写数量限制）
+      if (lifeItemLeft === 0) addFloat(it.x, it.y - 38, '生质液已吃满，之后改刷万年灵乳', '#4ade80', 1.5);
     } else {
       score += 2;
-      hudScore.textContent = String(score);
+      renderScore();
       addFloat(it.x, it.y - 14, '+2', '#fde047', 1);
     }
   } else if (it.type === 'double') {
     score *= 2;                       // 当前分数直接翻倍
-    hudScore.textContent = String(score);
+    renderScore();
     addFloat(it.x, it.y - 14, '×2!', '#fb923c', 1.2);
   }
 }
@@ -417,7 +427,7 @@ function flap() {
   if (state === 'ready') {
     state = 'playing';
     hud.classList.remove('ready');
-    hudScore.textContent = '0';
+    renderScore();
     startHint.classList.add('hidden');
   }
   if (state === 'playing') {
@@ -461,7 +471,7 @@ function update(dt) {
     pipes = pipes.filter(p => p.x > -PIPE_W - 10);
     if (pipes.length === 0 || pipes[pipes.length - 1].x < W - PIPE_SPACING + 20) spawnPipe();
     for (const p of pipes) {
-      if (!p.scored && p.x + PIPE_W < FROG_X) { p.scored = true; score += pipeMult; hudScore.textContent = String(score); }
+      if (!p.scored && p.x + PIPE_W < FROG_X) { p.scored = true; score += pipeMult; renderScore(); }
     }
     // 道具：移动 + 吃到
     for (const it of items) {
@@ -875,6 +885,7 @@ function loop(t) {
 // 本地降级榜：直接双击打开 html（无后端）时用 localStorage 兜底，PK 照样能玩
 const LS_BOARD = 'flappyLocalBoard';
 let apiBroken = false;
+let lastTryOnline = 0;   // 上次尝试线上的时间戳：降级期间每 30 秒重试一次，成功自动恢复
 
 function readLocalBoard() {
   try { return JSON.parse(localStorage.getItem(LS_BOARD) || '[]') || []; } catch (e) { return []; }
@@ -914,15 +925,25 @@ function renderBoard(list, olEl, loading) {
 }
 
 function loadBoard(olEl) {
-  if (apiBroken) { renderBoard(topTen(readLocalBoard()), olEl); return; }
+  // 降级期间先显示本地榜，但每 30 秒仍会重试线上（成功即恢复），不再一次失败就永久降级
+  if (apiBroken && Date.now() - lastTryOnline < 30000) {
+    renderBoard(topTen(readLocalBoard()), olEl);
+    return;
+  }
+  if (apiBroken) lastTryOnline = Date.now();
   renderBoard(null, olEl, true);
   fetch('/api/scores?game=flappy&limit=10')
     .then(r => r.json().then(j => ({ status: r.status, list: j })))
     .then(({ status, list }) => {
       if (status !== 200 || !Array.isArray(list)) throw new Error('api');
+      apiBroken = false;                      // 线上恢复
       renderBoard(list, olEl);
     })
-    .catch(() => { apiBroken = true; renderBoard(topTen(readLocalBoard()), olEl); });
+    .catch(() => {
+      apiBroken = true;
+      if (!lastTryOnline) lastTryOnline = Date.now();
+      renderBoard(topTen(readLocalBoard()), olEl);
+    });
 }
 
 function showPkResult(rank) {
@@ -936,8 +957,11 @@ function showPkResult(rank) {
 }
 
 function showOverlay() {
-  finalScore.textContent = String(score);
+  const s = String(score);
+  finalScore.textContent = s;
+  finalScore.style.fontSize = s.length >= 10 ? '24px' : s.length >= 8 ? '32px' : '';  // 大数字缩小防溢出
   overlay.classList.add('show');
+  overAt = performance.now();
   loadBoard(sideRankList);
 }
 
@@ -979,7 +1003,9 @@ function submitScore() {
     finish(sorted.findIndex(r => r.nick === nick) + 1);
   };
 
-  if (apiBroken) { localPk(); return; }
+  // 降级期间 30 秒内直接走本地榜；超过 30 秒则借用户主动提交再试一次线上
+  if (apiBroken && Date.now() - lastTryOnline < 30000) { localPk(); return; }
+  if (apiBroken) lastTryOnline = Date.now();
 
   fetch('/api/scores', {
     method: 'POST',
@@ -989,9 +1015,9 @@ function submitScore() {
     .then(r => r.json().then(j => ({ status: r.status, j })))
     .then(({ status, j }) => {
       if (status === 201) { finish(j && j.rank ? j.rank : 0); }
-      else if (status === 404 || status === 502) { apiBroken = true; localPk(); }  // 无后端，走本地榜
+      else if (status === 404 || status === 502) { apiBroken = true; lastTryOnline = Date.now(); localPk(); }  // 无后端，走本地榜
       else if (status === 429) { resetBtn(); showToast('提交太频繁，请稍后再试'); }
-      else { resetBtn(); showToast('上传失败：服务器错误（HTTP ' + status + '）'); }
+      else { resetBtn(); showToast((j && j.error) ? j.error : '上传失败：服务器错误（HTTP ' + status + '）'); }  // 透出后端错误信息（如分数超上限）
     })
     .catch(() => { resetBtn(); showToast('网络卡顿，请稍后再试'); });
 }
@@ -1007,7 +1033,11 @@ stage.addEventListener('pointerdown', e => {
 document.addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'ArrowUp') {
     e.preventDefault();
-    if (state === 'over') return;
+    if (state === 'over') {
+      // 结算面板弹出 0.6 秒后才允许键盘重开（防死亡瞬间狂按空格误触）
+      if (performance.now() - overAt > 600) resetGame();
+      return;
+    }
     flap();
   }
 });

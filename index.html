@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>余常进 | 个人主页</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <meta name="description" content="余常进，2027届本科，熟悉 Java、SSM 框架及前沿 AI 工具，中软国际实习中，秋招投递中。求职意向：AI应用开发 / 全栈开发 / 后端开发。" />
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -197,7 +198,6 @@ tailwind.config = {
     <!-- 导航链接组：居中白色玻璃胶囊，hover 高亮 + 蓝光 -->
     <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-white/8 px-1.5 py-1.5">
       <a href="#about" class="nav-pill">关于我</a>
-      <a href="#board" class="nav-pill">留言板</a>
       <div class="nav-item" id="gamesNav">
         <button type="button" class="nav-pill inline-flex items-center gap-1" aria-haspopup="true" aria-expanded="false">
           小游戏
@@ -207,12 +207,13 @@ tailwind.config = {
           <a class="game-card" href="./flappy.html" role="menuitem">
             <span class="game-icon" style="background:rgba(34,197,94,.15); border:1px solid rgba(34,197,94,.35);">🐸</span>
             <span>
-              <span class="g-name block">竹间蛙跳</span>
-              <span class="g-desc block">Flappy 式青蛙，穿过竹缝能得几分？</span>
+              <span class="g-name block">一只蛙的数值崩坏</span>
+              <span class="g-desc block">在数值崩坏的世界里，你是一只青蛙。</span>
             </span>
           </a>
         </div>
       </div>
+      <a href="#board" class="nav-pill">留言板</a>
     </div>
     <div class="hidden md:flex items-center">
       <a href="#contact" class="btn-primary inline-flex items-center gap-2 rounded-md text-sm font-medium h-9 px-4 py-2">
@@ -227,13 +228,13 @@ tailwind.config = {
   <div id="mobileMenu" class="hidden md:hidden nav-glass border-t border-white/10">
     <div class="px-6 py-4 flex flex-col gap-4 text-sm font-medium text-soft">
       <a href="#about" class="hover:text-white transition-colors">关于我</a>
-      <a href="#board" class="hover:text-white transition-colors">留言板</a>
       <div class="flex flex-col gap-3">
         <span class="text-dim">小游戏</span>
         <div class="ml-3 flex flex-col gap-3">
-          <a href="./flappy.html" class="hover:text-white transition-colors">🐸 竹间蛙跳</a>
+          <a href="./flappy.html" class="hover:text-white transition-colors">🐸 一只蛙的数值崩坏</a>
         </div>
       </div>
+      <a href="#board" class="hover:text-white transition-colors">留言板</a>
       <a href="#contact" class="btn-primary inline-flex justify-center items-center rounded-md h-9 px-4 py-2">联系我</a>
     </div>
   </div>
@@ -309,6 +310,28 @@ tailwind.config = {
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- 小游戏 -->
+<section id="games" class="reveal py-20 lg:py-24">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex flex-col items-center text-center mb-14">
+      <h2 class="text-2xl lg:text-4xl font-medium text-gradient">小游戏</h2>
+      <p class="text-sm text-dim mt-3">忙里偷闲，放松一下</p>
+    </div>
+    <a href="./flappy.html" class="vcard group no-underline max-w-3xl mx-auto p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6">
+      <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shrink-0" style="background:rgba(34,197,94,.15); border:1px solid rgba(34,197,94,.35);">🐸</div>
+      <div class="flex-1 text-center md:text-left">
+        <h3 class="text-lg font-semibold text-white group-hover:text-brand2 transition-colors">一只蛙的数值崩坏</h3>
+        <p class="text-sm text-dim mt-1">在数值崩坏的世界里，你是一只青蛙。</p>
+        <p class="text-xs text-dim/70 mt-2">Canvas 手绘小游戏 · 支持排行榜 PK</p>
+      </div>
+      <div class="btn-primary inline-flex items-center gap-2 rounded-md text-sm font-semibold h-11 px-8 shrink-0">
+        开始游戏
+        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </div>
+    </a>
   </div>
 </section>
 

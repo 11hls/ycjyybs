@@ -9,7 +9,7 @@ export async function onRequestGet({ request, env }) {
     if (!game) return Response.json({ error: '缺少 game 参数' }, { status: 400 });
 
     const { results } = await env.DB.prepare(
-      'SELECT nick, score, created_at FROM scores WHERE game = ? ORDER BY score DESC, created_at ASC LIMIT ?'
+      'SELECT nick, MAX(score) AS score, MIN(created_at) AS created_at FROM scores WHERE game = ? GROUP BY nick ORDER BY score DESC, created_at ASC LIMIT ?'
     ).bind(game, limit).all();
 
     return Response.json(results.map(r => ({
@@ -30,8 +30,12 @@ export async function onRequestPost({ request, env }) {
     const game = String(body.game || '').trim().slice(0, 20);
     const nick = String(body.nick || '').trim().slice(0, 10);
     const score = Math.floor(Number(body.score));
-    if (!game || !nick || !Number.isFinite(score) || score < 0 || score > 9999) {
+    if (!game || !nick || !Number.isFinite(score) || score < 0) {
       return Response.json({ error: '参数不合法' }, { status: 400 });
+    }
+    // 上限 9.99 亿：数值崩坏玩法下 pipeMult 指数翻倍，分数很容易上亿
+    if (score > 999999999) {
+      return Response.json({ error: '分数超出排行榜上限（9.99 亿）' }, { status: 400 });
     }
 
     // 简单防刷：同一 IP 30 秒内最多 2 条
@@ -47,7 +51,13 @@ export async function onRequestPost({ request, env }) {
       'INSERT INTO scores (game, nick, score, ip) VALUES (?, ?, ?, ?)'
     ).bind(game, nick, score, ip).run();
 
-    return Response.json({ ok: true }, { status: 201 });
+    // PK 排名：与 GET 榜单同规则（同名取最高分）——按该昵称历史最高分计算名次，
+    // 否则"历史 500 分、本局 300 分"会显示成第 3 名，但榜单上他其实是第 1
+    const higher = await env.DB.prepare(
+      'SELECT COUNT(*) AS c FROM (SELECT nick, MAX(score) AS mx FROM scores WHERE game = ? GROUP BY nick HAVING mx > (SELECT MAX(score) FROM scores WHERE game = ? AND nick = ?))'
+    ).bind(game, game, nick).first();
+
+    return Response.json({ ok: true, rank: (higher ? higher.c : 0) + 1 }, { status: 201 });
   } catch (e) {
     return Response.json({ error: '服务器错误' }, { status: 500 });
   }

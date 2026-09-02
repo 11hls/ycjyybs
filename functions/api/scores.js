@@ -33,10 +33,9 @@ export async function onRequestPost({ request, env }) {
     if (!game || !nick || !Number.isFinite(score) || score < 0) {
       return Response.json({ error: '参数不合法' }, { status: 400 });
     }
-    // 上限 9.99 亿：数值崩坏玩法下 pipeMult 指数翻倍，分数很容易上亿
-    if (score > 999999999) {
-      return Response.json({ error: '分数超出排行榜上限（9.99 亿）' }, { status: 400 });
-    }
+    // 上限一兆减一（999,999,999,999）：数值崩坏玩法分数可指数级膨胀，超过一兆自动按此封顶
+    const SCORE_CAP = 999999999999;
+    const capped = Math.min(score, SCORE_CAP);
 
     // 简单防刷：同一 IP 30 秒内最多 2 条
     const ip = request.headers.get('CF-Connecting-IP') || '';
@@ -49,7 +48,7 @@ export async function onRequestPost({ request, env }) {
 
     await env.DB.prepare(
       'INSERT INTO scores (game, nick, score, ip) VALUES (?, ?, ?, ?)'
-    ).bind(game, nick, score, ip).run();
+    ).bind(game, nick, capped, ip).run();
 
     // PK 排名：与 GET 榜单同规则（同名取最高分）——按该昵称历史最高分计算名次，
     // 否则"历史 500 分、本局 300 分"会显示成第 3 名，但榜单上他其实是第 1

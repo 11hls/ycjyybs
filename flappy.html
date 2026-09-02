@@ -14,14 +14,14 @@
     background-image:radial-gradient(ellipse at 50% -20%, rgba(34,197,94,.14), transparent 60%);
     color:#e2e8f0;
     display:flex; align-items:center; justify-content:center;
-    min-height:100vh; padding:20px; overflow:hidden;
+    min-height:100vh; padding:16px; overflow:hidden;
   }
   .wrap {
-    display:flex; align-items:center; justify-content:space-between;
-    gap:20px; flex-wrap:nowrap;
+    display:flex; align-items:stretch; justify-content:space-between;
+    gap:16px; flex-wrap:nowrap;
     width:100%; max-width:none;
   }
-  .main { display:flex; flex-direction:column; align-items:center; gap:14px; flex:1 1 auto; min-width:0; }
+  .main { display:flex; flex-direction:column; align-items:center; gap:12px; flex:1 1 auto; min-width:0; }
   h1 {
     font-size:20px; font-weight:600; letter-spacing:2px;
     color:#f0fdf4;
@@ -30,8 +30,8 @@
   h1 small { font-size:12px; font-weight:400; color:#7dd3a8; letter-spacing:1px; margin-left:8px; }
   .stage {
     position:relative; display:inline-block;
-    /* 画布保持 5:6 比例不变形（左右加宽）；高度是宽屏下的真实瓶颈，宽度随视口高度自适应 */
-    width:min(100%, calc((100vh - 90px) * 5 / 6));
+    /* 画布保持 7:6 比例不变形；高度驱动宽度，宽屏铺满图鉴与排行榜之间，窄屏用视口宽兜底 */
+    width:min(calc((100vh - 84px) * 7 / 6), calc(100vw - 600px));
     border-radius:18px; overflow:hidden;
     box-shadow:0 24px 60px -18px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.08);
     background:#bae6fd;
@@ -123,7 +123,7 @@
   .rankList .rk { width:22px; text-align:right; flex-shrink:0; color:#8a978f; }
   .rankList .rk.top { color:inherit; font-weight:600; }
   .rankList .nk { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
-  .rankList .sc { font-weight:600; color:#fff; font-size:12px; white-space:nowrap; }
+  .rankList .sc { font-weight:600; color:#fff; font-size:12px; white-space:nowrap; flex-shrink:0; }
   .rankList .empty { color:#8a978f; text-align:center; padding:8px 0; }
   .rankList li.empty-slot { color:#55635b; font-style:italic; }
   .rankList li.empty-slot .sc { color:#55635b; font-weight:400; }
@@ -192,7 +192,7 @@
   }
   /* ---- 右侧排行榜 ---- */
   .board-side {
-    width:240px; padding:18px 16px 14px;
+    width:320px; padding:18px 16px 14px;
     background:rgba(15,23,42,.72);
     border:1px solid rgba(255,255,255,.1);
     border-radius:16px;
@@ -220,6 +220,7 @@
     body { min-height:100vh; overflow-x:hidden; overflow-y:auto; align-items:flex-start; justify-content:center; }
     .wrap { flex-direction:column; gap:16px; align-items:stretch; }
     .main { order:1; }
+    .stage { width:min(100%, calc((100vh - 84px) * 7 / 6)); }
     .legend { order:2; width:min(440px, 94vw); }
     .board-side { order:3; width:min(440px, 94vw); }
     .legend.collapsed { width:100%; }
@@ -246,7 +247,7 @@
   <div class="main">
   <h1>一只蛙的数值崩坏</h1>
   <div class="stage" id="stage">
-    <canvas id="game" width="1000" height="1200"></canvas>
+    <canvas id="game" width="1400" height="1200"></canvas>
     <div id="hud" class="ready"><span id="hudScore">0</span><span id="hudHearts">❤ 3/3</span></div>
     <div id="startHint">点击 / 空格 起跳</div>
     <div class="overlay" id="overlay">
@@ -276,7 +277,7 @@
 'use strict';
 const canvas = document.getElementById('game');
 let ctx = canvas.getContext('2d');
-ctx.scale(2, 2);   // 物理分辨率 1000×1200，逻辑坐标 500×600（左右加宽后），绘制代码零改动
+ctx.scale(2, 2);   // 物理分辨率 1400×1200，逻辑坐标 700×600（左右加宽后），绘制代码零改动
 const stage = document.getElementById('stage');
 const hud = document.getElementById('hud');
 const hudScore = document.getElementById('hudScore');
@@ -292,7 +293,7 @@ const pkRank = document.getElementById('pkRank');
 const restartBtn = document.getElementById('restartBtn');
 const toastMsg = document.getElementById('toastMsg');
 
-const W = 500, H = 600;
+const W = 700, H = 600;
 const GRAVITY = 0.45, FLAP = -7.0, SCROLL = 2.2;
 const PIPE_W = 56, GROUND_H = 48, PIPE_SPACING = 215;
 const FROG_X = 110;
@@ -391,7 +392,12 @@ function renderHearts() {
   hudHearts.textContent = '❤ ' + hearts + '/' + maxHearts;
 }
 
+// 排行榜分数上限：一兆减一（999,999,999,999）。数值崩坏玩法分数可指数级膨胀，
+// 超过一兆的展示/提交均按此封顶（与服务端 functions/api/scores.js 的 SCORE_CAP 一致）
+const SCORE_CAP = 999999999999;
+
 function renderScore() {
+  if (score > SCORE_CAP) score = SCORE_CAP;   // 超过一兆直接钳到一兆减一（内部状态同步封顶）
   const s = String(score);
   hudScore.textContent = s;
   // 分数很长时自动缩小字号，避免挤压右侧血量显示
@@ -986,12 +992,11 @@ function showPkResult(rank) {
 }
 
 function showOverlay() {
-  const s = String(score);
+  const s = String(Math.min(score, SCORE_CAP));   // 结算展示同样封顶一兆减一
   finalScore.textContent = s;
   finalScore.style.fontSize = s.length >= 10 ? '24px' : s.length >= 8 ? '32px' : '';  // 大数字缩小防溢出
   overlay.classList.add('show');
   overAt = performance.now();
-  loadBoard(sideRankList);
 }
 
 function showToast(msg) {
@@ -1039,7 +1044,7 @@ function submitScore() {
   fetch('/api/scores', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ game: 'flappy', nick: nick, score: score })
+    body: JSON.stringify({ game: 'flappy', nick: nick, score: Math.min(score, SCORE_CAP) })  // 提交分数同样封顶
   })
     .then(r => r.json().then(j => ({ status: r.status, j })))
     .then(({ status, j }) => {
@@ -1089,8 +1094,7 @@ lgToggle.addEventListener('click', e => {
 initScenery();
 resetGame();
 paintLegendIcons();
-loadBoard(sideRankList);            // 右侧排行榜常驻显示
-setInterval(() => loadBoard(sideRankList), 30000);   // 30 秒自动刷新
+loadBoard(sideRankList);            // 右侧排行榜常驻显示（仅在初始、死亡、上传、手动刷新时更新，不做定时轮询）
 requestAnimationFrame(loop);
 
 /* ---------- 道具图鉴：复用游戏绘制函数，保证图标与游戏内一致 ---------- */

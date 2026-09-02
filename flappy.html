@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>竹间蛙跳 · Flappy 青蛙</title>
+<title>一只蛙的数值崩坏</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { height:100%; }
   body {
     font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
@@ -16,7 +17,7 @@
     min-height:100vh; padding:20px; overflow:hidden;
   }
   .wrap {
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:stretch; justify-content:center;
     gap:28px; flex-wrap:wrap;
   }
   .main { display:flex; flex-direction:column; align-items:center; gap:14px; }
@@ -45,7 +46,6 @@
     pointer-events:none; z-index:5; letter-spacing:2px;
   }
   #hud.ready { font-size:18px; top:20px; color:#fff; opacity:.92; font-weight:500; letter-spacing:1px; }
-  #hud.ready #hudHearts { opacity:.3; }
   #hudHearts { font-size:20px; letter-spacing:3px; text-shadow:0 2px 8px rgba(0,0,0,.45); }
   #startHint {
     position:absolute; bottom:70px; left:0; right:0; text-align:center;
@@ -61,8 +61,9 @@
     position:absolute; inset:0; z-index:10;
     display:none; align-items:center; justify-content:center;
     background:rgba(8,15,12,.55); backdrop-filter:blur(4px);
+    pointer-events:none;
   }
-  .overlay.show { display:flex; }
+  .overlay.show { display:flex; pointer-events:auto; }
   .panel {
     width:calc(100% - 48px); max-width:330px; max-height:88%;
     overflow-y:auto;
@@ -75,7 +76,6 @@
   .p-title { font-size:20px; font-weight:600; color:#f0fdf4; }
   .p-score { margin-top:6px; font-size:34px; font-weight:700; color:#4ade80; }
   .p-score b { font-size:44px; }
-  .p-best { margin-top:2px; font-size:13px; color:#a7b3ab; }
   .submit-row { margin-top:14px; display:flex; gap:8px; }
   .submit-row input {
     flex:1; min-width:0; padding:9px 12px; border-radius:10px;
@@ -84,6 +84,22 @@
   }
   .submit-row input::placeholder { color:#8a978f; }
   .submit-row input:focus { border-color:#4ade80; background:rgba(255,255,255,.1); }
+  .p-rank {
+    display:none; margin-top:12px; padding:10px 12px;
+    border-radius:10px; background:rgba(74,222,128,.12);
+    border:1px solid rgba(74,222,128,.45);
+    color:#4ade80; font-size:14px; font-weight:600; letter-spacing:1px;
+  }
+  .p-rank.show { display:block; animation:pkIn .4s ease; }
+  @keyframes pkIn { from { transform:scale(.9); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .toast-msg {
+    display:none; margin-bottom:10px; padding:8px 12px; border-radius:8px;
+    background:rgba(248,113,113,.18); border:1px solid rgba(248,113,113,.5);
+    color:#f87171; font-size:13px; font-weight:600; letter-spacing:1px;
+    animation:toastIn .25s ease;
+  }
+  .toast-msg.show { display:block; }
+  @keyframes toastIn { from { transform:translateY(-6px); opacity:0; } to { transform:translateY(0); opacity:1; } }
   .submit-row button {
     padding:9px 14px; border-radius:10px; border:none; cursor:pointer;
     background:#22c55e; color:#052e16; font-size:14px; font-weight:600;
@@ -93,20 +109,24 @@
   .submit-row button:disabled { background:#4a5a50; color:#9aa8a0; cursor:default; }
   .board { margin-top:16px; text-align:left; }
   .board-title { font-size:13px; font-weight:600; color:#a7f3d0; letter-spacing:1px; margin-bottom:8px; }
-  #rankList { list-style:none; font-size:13px; }
-  #rankList li {
+  .rankList { list-style:none; font-size:13px; flex:1; display:grid; grid-template-rows:repeat(10, 1fr); gap:2px; }
+  .rankList li {
     display:flex; align-items:center; gap:8px;
-    padding:5px 8px; border-radius:8px; color:#dbe5de;
+    padding:6px 8px; border-radius:8px; color:#dbe5de;
   }
-  #rankList li:nth-child(1) { background:rgba(250,204,21,.14); color:#fde68a; }
-  #rankList li:nth-child(2) { background:rgba(203,213,225,.12); color:#e2e8f0; }
-  #rankList li:nth-child(3) { background:rgba(217,119,6,.16); color:#fdba74; }
-  #rankList li.me { outline:1px solid #4ade80; }
-  #rankList .rk { width:22px; text-align:right; flex-shrink:0; color:#8a978f; }
-  #rankList .rk.top { color:inherit; font-weight:600; }
-  #rankList .nk { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  #rankList .sc { font-weight:600; color:#fff; }
-  #rankList .empty { color:#8a978f; text-align:center; padding:8px 0; }
+  .rankList li:nth-child(1) { background:rgba(250,204,21,.14); color:#fde68a; }
+  .rankList li:nth-child(2) { background:rgba(203,213,225,.12); color:#e2e8f0; }
+  .rankList li:nth-child(3) { background:rgba(217,119,6,.16); color:#fdba74; }
+  .rankList li.me { outline:1px solid #4ade80; }
+  .rankList .rk { width:22px; text-align:right; flex-shrink:0; color:#8a978f; }
+  .rankList .rk.top { color:inherit; font-weight:600; }
+  .rankList .nk { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+  .rankList .sc { font-weight:600; color:#fff; font-size:12px; white-space:nowrap; }
+  .rankList .empty { color:#8a978f; text-align:center; padding:8px 0; }
+  .rankList li.empty-slot { color:#55635b; font-style:italic; }
+  .rankList li.empty-slot .sc { color:#55635b; font-weight:400; }
+  .rankList li.loading-slot { color:#64748b; }
+  .rankList li.loading-slot .sc { color:#64748b; font-weight:400; }
   .restart-btn {
     margin-top:16px; width:100%; padding:11px; border-radius:12px;
     border:none; cursor:pointer;
@@ -124,13 +144,14 @@
     border-radius:16px;
     backdrop-filter:blur(8px);
     box-shadow:0 18px 44px -18px rgba(0,0,0,.6);
+    display:flex; flex-direction:column;
   }
   .lg-title {
     font-size:14px; font-weight:600; color:#a7f3d0;
     letter-spacing:2px; margin-bottom:14px;
     display:flex; align-items:center; gap:6px;
   }
-  .lg-items { display:flex; flex-direction:column; gap:12px; }
+  .lg-items { display:flex; flex-direction:column; gap:12px; flex:1; justify-content:space-evenly; }
   .lg-item { display:flex; align-items:center; gap:10px; }
   .lg-icon { width:40px; height:40px; flex-shrink:0; }
   .lg-text { display:flex; flex-direction:column; min-width:0; }
@@ -140,10 +161,39 @@
     margin-top:14px; padding-top:10px;
     border-top:1px dashed rgba(255,255,255,.12);
     font-size:11px; color:#7dd3a8; line-height:1.6;
+    flex-shrink:0;
   }
+  /* ---- 右侧排行榜 ---- */
+  .board-side {
+    width:240px; padding:18px 16px 14px;
+    background:rgba(15,23,42,.72);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:16px;
+    backdrop-filter:blur(8px);
+    box-shadow:0 18px 44px -18px rgba(0,0,0,.6);
+    display:flex; flex-direction:column;
+  }
+  .bs-title {
+    font-size:14px; font-weight:600; color:#fde68a;
+    letter-spacing:2px; margin-bottom:12px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .bs-title small { font-size:10px; font-weight:400; color:#94a3b8; letter-spacing:1px; margin-left:auto; }
+  .bs-refresh {
+    margin-top:14px; padding:7px; border-radius:9px;
+    border:1px solid rgba(255,255,255,.16);
+    background:rgba(255,255,255,.06); color:#e2e8f0;
+    font-size:12px; cursor:pointer; transition:background .15s;
+    letter-spacing:2px; flex-shrink:0;
+  }
+  .bs-refresh:hover { background:rgba(255,255,255,.12); }
   @media (max-width: 920px) {
+    html, body { height:auto; }
+    body { min-height:100vh; overflow-x:hidden; overflow-y:auto; align-items:flex-start; justify-content:center; }
     .wrap { flex-direction:column; gap:16px; }
-    .legend { width:min(440px, 94vw); }
+    .main { order:1; }
+    .legend { order:2; width:min(440px, 94vw); }
+    .board-side { order:3; width:min(440px, 94vw); }
     .lg-items { flex-direction:row; flex-wrap:wrap; }
     .lg-item { width:calc(50% - 5px); }
   }
@@ -151,42 +201,45 @@
 </head>
 <body>
 <div class="wrap">
+  <aside class="legend">
+    <div class="lg-title">🎒 道具图鉴</div>
+    <div class="lg-items">
+      <div class="lg-item"><canvas class="lg-icon" data-item="coin" width="88" height="88"></canvas><div class="lg-text"><b>金币</b><span>获得穿过两次竹子的分数</span></div></div>
+      <div class="lg-item"><canvas class="lg-icon" data-item="heart" width="88" height="88"></canvas><div class="lg-text"><b>血包</b><span>回 1 滴血，满血吃分数翻倍</span></div></div>
+      <div class="lg-item"><canvas class="lg-icon" data-item="max" width="88" height="88"></canvas><div class="lg-text"><b>生质液</b><span>生命上限 +1</span></div></div>
+      <div class="lg-item"><canvas class="lg-icon" data-item="ghost" width="88" height="88"></canvas><div class="lg-text"><b>虚化药水</b><span>3秒虚化</span></div></div>
+      <div class="lg-item"><canvas class="lg-icon" data-item="plus" width="88" height="88"></canvas><div class="lg-text"><b>万年灵乳</b><span>穿过竹子的得分永久翻倍</span></div></div>
+      <div class="lg-item"><canvas class="lg-icon" data-item="double" width="88" height="88"></canvas><div class="lg-text"><b>加倍药水</b><span>当前分数直接翻倍</span></div></div>
+    </div>
+    <div class="lg-foot">温馨提示：道具随机刷新，位置不保证能吃得到</div>
+  </aside>
+
   <div class="main">
-  <h1>竹间蛙跳<small>Flappy Frog</small></h1>
+  <h1>一只蛙的数值崩坏</h1>
   <div class="stage" id="stage">
     <canvas id="game" width="800" height="1200"></canvas>
-    <div id="hud" class="ready"><span id="hudScore">最高 <span id="bestTop">0</span></span><span id="hudHearts">❤❤❤</span></div>
+    <div id="hud" class="ready"><span id="hudScore">0</span><span id="hudHearts">❤ 3/3</span></div>
     <div id="startHint">点击 / 空格 起跳</div>
     <div class="overlay" id="overlay">
       <div class="panel">
-        <div class="p-title">蛙蛙掉下来了</div>
+        <div class="toast-msg" id="toastMsg"></div>
+        <div class="p-title">少侠殒命于此，是否再战？</div>
         <div class="p-score">得分 <b id="finalScore">0</b></div>
-        <div class="p-best">历史最高 <span id="bestScore">0</span></div>
+        <div class="p-rank" id="pkRank"></div>
         <div class="submit-row">
-          <input id="nick" maxlength="10" placeholder="留个名字上榜" autocomplete="off">
-          <button id="submitBtn">上榜</button>
-        </div>
-        <div class="board">
-          <div class="board-title">竹林排行榜</div>
-          <ol id="rankList"></ol>
+          <input id="nick" maxlength="10" placeholder="少侠，报上名来" autocomplete="off">
+          <button id="submitBtn">⚔️ 上榜 PK</button>
         </div>
         <button class="restart-btn" id="restartBtn">再来一局</button>
       </div>
     </div>
   </div>
-  <div class="foot">点击 / 空格 起跳 · 穿过竹缝 +1 · 三滴血，撞竹后虚化免疫</div>
   </div>
 
-  <aside class="legend">
-    <div class="lg-title">🎒 道具图鉴</div>
-    <div class="lg-items">
-      <div class="lg-item"><canvas class="lg-icon" data-item="coin" width="88" height="88"></canvas><div class="lg-text"><b>金币</b><span>吃到 +2 分</span></div></div>
-      <div class="lg-item"><canvas class="lg-icon" data-item="heart" width="88" height="88"></canvas><div class="lg-text"><b>血包</b><span>回 1 滴血，满血转 +1 分</span></div></div>
-      <div class="lg-item"><canvas class="lg-icon" data-item="ghost" width="88" height="88"></canvas><div class="lg-text"><b>虚化药水</b><span>3 秒护盾，撞竹不掉血</span></div></div>
-      <div class="lg-item"><canvas class="lg-icon" data-item="plus" width="88" height="88"></canvas><div class="lg-text"><b>加一药水</b><span>之后每根竹子永久 +1 分</span></div></div>
-      <div class="lg-item"><canvas class="lg-icon" data-item="double" width="88" height="88"></canvas><div class="lg-text"><b>加倍药水</b><span>当前分数直接翻倍</span></div></div>
-    </div>
-    <div class="lg-foot">温馨提示：道具随机刷新，位置不保证能吃得到</div>
+  <aside class="board-side">
+    <div class="bs-title">🏆 竹林排行榜<small>TOP10</small></div>
+    <ol class="rankList" id="sideRankList"><li class="empty">加载中…</li></ol>
+    <button class="bs-refresh" id="refreshBtn">刷新榜单</button>
   </aside>
 </div>
 
@@ -199,33 +252,35 @@ const stage = document.getElementById('stage');
 const hud = document.getElementById('hud');
 const hudScore = document.getElementById('hudScore');
 const hudHearts = document.getElementById('hudHearts');
-const bestTop = document.getElementById('bestTop');
 const startHint = document.getElementById('startHint');
 const overlay = document.getElementById('overlay');
 const finalScore = document.getElementById('finalScore');
-const bestScore = document.getElementById('bestScore');
 const nickInput = document.getElementById('nick');
 const submitBtn = document.getElementById('submitBtn');
-const rankList = document.getElementById('rankList');
+const sideRankList = document.getElementById('sideRankList');
+const refreshBtn = document.getElementById('refreshBtn');
+const pkRank = document.getElementById('pkRank');
 const restartBtn = document.getElementById('restartBtn');
+const toastMsg = document.getElementById('toastMsg');
 
 const W = 400, H = 600;
 const GRAVITY = 0.45, FLAP = -7.0, SCROLL = 2.2;
 const PIPE_W = 56, GROUND_H = 48, PIPE_SPACING = 215;
 const FROG_X = 96;
 const MAX_HEARTS = 3, HURT_IMMUNE = 1.5, GHOST_MS = 3;
+const MAX_LIFE_ITEM = 5;    // 生质液最多可吃数量
+const MAX_HEART_ITEM = 20;  // 血包每局最多刷新数量
 
 const frog = { y: H / 2, vy: 0, w: 32, h: 28, rot: 0, flapT: 0 };
 let pipes = [], clouds = [], farHills = [], hills = [];
 let items = [], floats = [];
-let score = 0, best = 0, state = 'ready';
-let bonus = 0;   // 加一药水叠加的每根竹子永久加分
+let score = 0, state = 'ready';
+let pipeMult = 1; // 万年灵乳叠加的穿竹得分倍数（初始 1 倍）
 let pipeSeq = 0; // 竹子生成序号（独立计数器，不受 pipes 数组裁剪影响）
-let hearts = MAX_HEARTS, invincible = 0;
+let maxHearts = MAX_HEARTS, hearts = MAX_HEARTS, invincible = 0, lifeItemLeft = MAX_LIFE_ITEM, heartItemLeft = MAX_HEART_ITEM;
 let lastTime = 0, elapsed = 0, dist = 0, deadTimer = 0, submitted = false;
 
-try { best = parseInt(localStorage.getItem('flappyBest') || '0', 10) || 0; } catch (e) {}
-try { nickInput.value = localStorage.getItem('flappyNick') || ''; } catch (e) {}
+try { let n = localStorage.getItem('flappyNick') || ''; if (n === '测试') n = ''; nickInput.value = n; } catch (e) {}
 
 function rand(a, b) { return a + Math.random() * (b - a); }
 
@@ -241,22 +296,24 @@ function initScenery() {
 function resetGame() {
   frog.y = H / 2; frog.vy = 0; frog.rot = 0; frog.flapT = 0;
   pipes = []; items = []; floats = [];
-  score = 0; bonus = 0; pipeSeq = 0; deadTimer = 0; submitted = false;
-  hearts = MAX_HEARTS; invincible = 0;
+  score = 0; pipeMult = 1; pipeSeq = 0; deadTimer = 0; submitted = false;
+  hearts = maxHearts = MAX_HEARTS; invincible = 0; lifeItemLeft = MAX_LIFE_ITEM; heartItemLeft = MAX_HEART_ITEM;
   renderHearts();
   overlay.classList.remove('show');
-  submitBtn.disabled = false; submitBtn.textContent = '上榜';
+  pkRank.classList.remove('show');
+  submitBtn.disabled = false; submitBtn.textContent = '⚔️ 上榜 PK';
   state = 'ready';
   startHint.classList.remove('hidden');
   hud.classList.add('ready');
-  hudScore.innerHTML = '最高 <span id="bestTop">' + best + '</span>';
+  hudScore.textContent = '0';
 }
 
 function randomGap() {
-  // 分三档：窄缝 / 普通 / 宽缝，视觉差异明显
+  // 分四档：超窄 / 窄 / 普通 / 宽，视觉差异明显
   const r = Math.random();
-  if (r < 0.3) return 115 + Math.random() * 20;   // 窄：115~135（挑战）
-  if (r < 0.65) return 145 + Math.random() * 25;  // 中：145~170
+  if (r < 0.12) return 95 + Math.random() * 10;   // 超窄：95~105（极限）
+  if (r < 0.40) return 115 + Math.random() * 20;  // 窄：115~135（挑战）
+  if (r < 0.75) return 145 + Math.random() * 25;  // 中：145~170
   return 175 + Math.random() * 20;                // 宽：175~195（奖励）
 }
 
@@ -278,54 +335,69 @@ function spawnPipe() {
   // 每两根竹子（第 2、4、6…根）之间的水平空隙刷一个道具
   // 用独立序号判断：pipes.length 会因竹子移出屏幕被裁剪，奇偶性会乱
   if (pipeSeq % 2 === 0) {
+    let tp = pickItemType();
+    if (tp === 'heart' && heartItemLeft <= 0) tp = 'coin'; // 血包本局已刷满 20 个，改为金币
+    else if (tp === 'heart') heartItemLeft--;
     items.push({
       x: W + 20 - PIPE_SPACING / 2 + PIPE_W / 2,   // 左右两根竹子的空隙正中间
       y: rand(60, H - GROUND_H - 60),              // 可飞行区随机高度，要主动去吃
-      type: pickItemType(), t: rand(0, 60)
+      type: tp, t: rand(0, 60)
     });
   }
 }
 
 function pickItemType() {
   const r = Math.random();
-  if (r < 0.38) return 'coin';      // 金币：+2 分
-  if (r < 0.50) return 'heart';     // 血包：+1 血
-  if (r < 0.68) return 'ghost';     // 虚化药水：3 秒护盾（紫瓶 ?）
-  if (r < 0.85) return 'plus';      // 加一药水：之后每根竹子永久 +1（绿瓶 +）
-  return 'double';                  // 加倍药水：分数直接翻倍（橙瓶 ×2）
+  if (r < 0.34) return 'coin';      // 金币：获得穿过两次竹子的分数
+  if (r < 0.46) return 'heart';     // 血包：+1 血
+  if (r < 0.62) return 'ghost';     // 虚化药水：3 秒护盾（紫瓶）
+  if (r < 0.78) return 'plus';      // 万年灵乳：穿竹得分永久翻倍（绿瓶 ×2）
+  if (r < 0.90) return 'double';    // 加倍药水：分数直接翻倍（橙瓶 ×2）
+  // 生质液：生命上限 +1（粉瓶 ♥）；吃满 5 个后不再刷新，原位置变为万年灵乳
+  return lifeItemLeft <= 0 ? 'plus' : 'max';
 }
 
 function renderHearts() {
-  let s = '';
-  for (let i = 0; i < MAX_HEARTS; i++) s += i < hearts ? '❤' : '🖤';
-  hudHearts.textContent = s;
+  hudHearts.textContent = '❤ ' + hearts + '/' + maxHearts;
 }
 
 function addFloat(x, y, text, color, life) {
-  floats.push({ x, y, text, color, life: life || 1 });
+  const L = 96;  // 96 帧 ≈ 1.6 秒（dt 单位为帧，60fps 下 1 帧 = 1/60 秒）
+  floats.push({ x, y, text, color, life: L, maxLife: L });
 }
 
 function applyItem(it) {
   if (it.type === 'coin') {
-    score += 2;
+    score += 2 * pipeMult;                    // 金币：获得穿过两次竹子的分数
     hudScore.textContent = String(score);
-    addFloat(it.x, it.y - 14, '+2', '#fde047', 1);
+    addFloat(it.x, it.y - 14, '+' + (2 * pipeMult), '#fde047', 1);
   } else if (it.type === 'heart') {
-    if (hearts < MAX_HEARTS) {
+    if (hearts < maxHearts) {
       hearts++;
       renderHearts();
       addFloat(it.x, it.y - 14, '+1 ♥', '#fca5a5', 1);
     } else {
-      score += 1;
+      score *= 2;
       hudScore.textContent = String(score);
-      addFloat(it.x, it.y - 14, '+1', '#fde047', 1);
+      addFloat(it.x, it.y - 14, '×2', '#fca5a5', 1);
     }
   } else if (it.type === 'ghost') {
     invincible = Math.max(invincible, GHOST_MS);
     addFloat(it.x, it.y - 14, '虚化!', '#c4b5fd', 1.2);
   } else if (it.type === 'plus') {
-    bonus += 1;                       // 之后每根竹子 +1 永久叠加
-    addFloat(it.x, it.y - 14, '永久+1!', '#4ade80', 1.2);
+    pipeMult *= 2;                    // 穿竹得分永久翻倍
+    addFloat(it.x, it.y - 14, '穿竹翻倍!', '#4ade80', 1.2);
+  } else if (it.type === 'max') {
+    if (lifeItemLeft > 0 && maxHearts < 8) {
+      lifeItemLeft--;                   // 最多吃 5 个，吃满后不再加上限
+      maxHearts++; hearts++;            // 生命上限 +1，同时回 1 滴
+      renderHearts();
+      addFloat(it.x, it.y - 14, '上限+1 ♥', '#f9a8d4', 1.2);
+    } else {
+      score += 2;
+      hudScore.textContent = String(score);
+      addFloat(it.x, it.y - 14, '+2', '#fde047', 1);
+    }
   } else if (it.type === 'double') {
     score *= 2;                       // 当前分数直接翻倍
     hudScore.textContent = String(score);
@@ -357,10 +429,6 @@ function flap() {
 function die() {
   state = 'dead';
   frog.vy = Math.min(frog.vy, 0) - 1.5;  // 碰撞后先小弹一下再坠落
-  if (score > best) {
-    best = score;
-    try { localStorage.setItem('flappyBest', String(best)); } catch (e) {}
-  }
 }
 
 function update(dt) {
@@ -393,7 +461,7 @@ function update(dt) {
     pipes = pipes.filter(p => p.x > -PIPE_W - 10);
     if (pipes.length === 0 || pipes[pipes.length - 1].x < W - PIPE_SPACING + 20) spawnPipe();
     for (const p of pipes) {
-      if (!p.scored && p.x + PIPE_W < FROG_X) { p.scored = true; score += 1 + bonus; hudScore.textContent = String(score); }
+      if (!p.scored && p.x + PIPE_W < FROG_X) { p.scored = true; score += pipeMult; hudScore.textContent = String(score); }
     }
     // 道具：移动 + 吃到
     for (const it of items) {
@@ -527,14 +595,6 @@ function drawBambooSegment(x, topY, bottomY) {
   ctx.strokeStyle = 'rgba(30,50,18,.9)';
   ctx.lineWidth = 2;
   ctx.strokeRect(x + 1, topY, PIPE_W - 2, bottomY - topY);
-  // 顶部斜切口（内壁浅色）
-  ctx.fillStyle = '#eef3cf';
-  ctx.beginPath();
-  ctx.ellipse(x + PIPE_W / 2, topY, PIPE_W / 2 - 4, 6, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(30,50,18,.6)';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
 }
 
 function drawPipes() {
@@ -623,7 +683,7 @@ function drawPlusPotion(x, y, t) {
   ctx.translate(x, y + bob);
   ctx.shadowColor = 'rgba(74,222,128,.9)';
   ctx.shadowBlur = 12;
-  // 绿色药水瓶身：加一（永久 +1）
+  // 绿色药水瓶身：万年灵乳（穿竹得分永久翻倍）
   ctx.fillStyle = 'rgba(34,197,94,.92)';
   rr(-8, -3, 16, 13, 4); ctx.fill();
   ctx.fillStyle = '#4ade80';
@@ -631,10 +691,11 @@ function drawPlusPotion(x, y, t) {
   ctx.fillStyle = '#15803d';
   ctx.fillRect(-4.5, -11, 9, 5);
   ctx.shadowBlur = 0;
-  // "+" 标记
+  // "×2" 标记
   ctx.fillStyle = '#fff';
-  ctx.fillRect(-1.6, -3, 3.2, 8);
-  ctx.fillRect(-4, 0.6, 8, 3.2);
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('×2', 0, 2.5);
   ctx.restore();
 }
 
@@ -660,21 +721,63 @@ function drawDoublePotion(x, y, t) {
   ctx.restore();
 }
 
+function drawMaxPotion(x, y, t) {
+  const bob = Math.sin(t * 0.2) * 2;
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.shadowColor = 'rgba(139,92,246,.9)';
+  ctx.shadowBlur = 12;
+
+  // 玻璃瓶身（浅青蓝透明）
+  ctx.fillStyle = 'rgba(165,243,252,.32)';
+  ctx.beginPath();
+  ctx.moveTo(-3, -9);
+  ctx.lineTo(3, -9);
+  ctx.lineTo(5.5, 2);
+  ctx.arc(0, 2, 8, 0, Math.PI, false);
+  ctx.lineTo(-5.5, 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = 'rgba(165,243,252,.75)';
+  ctx.stroke();
+
+  // 瓶内双珠：生质液主体（蓝色珠子）
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath(); ctx.arc(-3, 3.5, 3.6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#0ea5e9';
+  ctx.beginPath(); ctx.arc(3, 3.5, 3.6, 0, Math.PI * 2); ctx.fill();
+
+  // 高光
+  ctx.fillStyle = 'rgba(255,255,255,.55)';
+  ctx.beginPath(); ctx.arc(-4, 2.2, 1.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(2, 2.2, 1.2, 0, Math.PI * 2); ctx.fill();
+
+  // 软木塞/瓶盖
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(-4, -13, 8, 4);
+
+  ctx.restore();
+}
+
 function drawItems() {
   for (const it of items) {
     if (it.type === 'coin') drawCoin(it.x, it.y, it.t);
     else if (it.type === 'heart') drawHeart(it.x, it.y, it.t);
     else if (it.type === 'ghost') drawGhost(it.x, it.y, it.t);
     else if (it.type === 'plus') drawPlusPotion(it.x, it.y, it.t);
+    else if (it.type === 'max') drawMaxPotion(it.x, it.y, it.t);
     else drawDoublePotion(it.x, it.y, it.t);
   }
 }
 
 function drawFloats() {
   for (const f of floats) {
-    ctx.globalAlpha = Math.min(1, Math.max(0, f.life * 1.4));
+    const t = f.maxLife ? f.life / f.maxLife : 0;   // 1 → 0
+    ctx.globalAlpha = t > 0.55 ? 1 : Math.max(0, t / 0.55);  // 前 55% 不透明，后 45% 平滑淡出
     ctx.fillStyle = f.color;
-    ctx.font = 'bold 15px sans-serif';
+    ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(f.text, f.x, f.y);
   }
@@ -767,38 +870,81 @@ function loop(t) {
   requestAnimationFrame(loop);
 }
 
-/* ---------- 排行榜 ---------- */
+/* ---------- 排行榜（右侧常驻面板 + 结算弹窗共用，只显示前十名） ---------- */
 
-function loadBoard() {
-  rankList.innerHTML = '<li class="empty">加载中…</li>';
+// 本地降级榜：直接双击打开 html（无后端）时用 localStorage 兜底，PK 照样能玩
+const LS_BOARD = 'flappyLocalBoard';
+let apiBroken = false;
+
+function readLocalBoard() {
+  try { return JSON.parse(localStorage.getItem(LS_BOARD) || '[]') || []; } catch (e) { return []; }
+}
+function writeLocalBoard(arr) {
+  try { localStorage.setItem(LS_BOARD, JSON.stringify(arr.slice(0, 50))); } catch (e) {}
+}
+function topTen(arr) {
+  // 同名去重：保留最高分
+  const map = {};
+  for (const r of arr) {
+    if (!map[r.nick] || r.score > map[r.nick].score) map[r.nick] = r;
+  }
+  return Object.values(map).sort((a, b) => b.score - a.score).slice(0, 10);
+}
+
+function renderBoard(list, olEl, loading) {
+  const me = (nickInput.value || '').trim();
+  olEl.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const li = document.createElement('li');
+    const rkCls = i < 3 ? 'rk top' : 'rk';
+    const row = (list && list[i]) || null;
+    if (loading) {
+      li.innerHTML = '<span class="' + rkCls + '">' + (i + 1) + '</span><span class="nk loading-slot">加载中…</span><span class="sc">——</span>';
+    } else if (row) {
+      li.innerHTML = '<span class="' + rkCls + '">' + (i + 1) + '</span><span class="nk"></span><span class="sc"></span>';
+      li.querySelector('.nk').textContent = row.nick;
+      li.querySelector('.sc').textContent = row.score + ' 分';
+      if (me && row.nick === me) li.classList.add('me');
+    } else {
+      li.classList.add('empty-slot');
+      li.innerHTML = '<span class="' + rkCls + '">' + (i + 1) + '</span><span class="nk">虚位以待</span><span class="sc">——</span>';
+    }
+    olEl.appendChild(li);
+  }
+}
+
+function loadBoard(olEl) {
+  if (apiBroken) { renderBoard(topTen(readLocalBoard()), olEl); return; }
+  renderBoard(null, olEl, true);
   fetch('/api/scores?game=flappy&limit=10')
-    .then(r => r.json())
-    .then(list => {
-      if (!Array.isArray(list) || list.length === 0) {
-        rankList.innerHTML = '<li class="empty">还没有人上榜，等你来破</li>';
-        return;
-      }
-      const me = (nickInput.value || '').trim();
-      rankList.innerHTML = '';
-      list.forEach((row, i) => {
-        const li = document.createElement('li');
-        if (i < 3) li.innerHTML = '<span class="rk top">' + (i + 1) + '</span>';
-        else li.innerHTML = '<span class="rk">' + (i + 1) + '</span>';
-        li.innerHTML += '<span class="nk"></span><span class="sc"></span>';
-        li.querySelector('.nk').textContent = row.nick;
-        li.querySelector('.sc').textContent = row.score + ' 分';
-        if (me && row.nick === me) li.classList.add('me');
-        rankList.appendChild(li);
-      });
+    .then(r => r.json().then(j => ({ status: r.status, list: j })))
+    .then(({ status, list }) => {
+      if (status !== 200 || !Array.isArray(list)) throw new Error('api');
+      renderBoard(list, olEl);
     })
-    .catch(() => { rankList.innerHTML = '<li class="empty">排行榜暂时加载失败</li>'; });
+    .catch(() => { apiBroken = true; renderBoard(topTen(readLocalBoard()), olEl); });
+}
+
+function showPkResult(rank) {
+  let msg;
+  if (!rank || rank < 1) msg = '⚔️ PK 完成，成绩已记录';
+  else if (rank === 1) msg = '🏆 PK 结果：全服第 1 名，无人能敌！';
+  else if (rank <= 10) msg = '⚔️ PK 结果：你排第 ' + rank + ' 名，已杀入 TOP10！';
+  else msg = '⚔️ PK 结果：你排第 ' + rank + ' 名，无名小卒';
+  pkRank.textContent = msg;
+  pkRank.classList.add('show');
 }
 
 function showOverlay() {
   finalScore.textContent = String(score);
-  bestScore.textContent = String(best);
   overlay.classList.add('show');
-  loadBoard();
+  loadBoard(sideRankList);
+}
+
+function showToast(msg) {
+  toastMsg.textContent = msg;
+  toastMsg.classList.add('show');
+  setTimeout(() => { toastMsg.classList.remove('show'); }, 3200);
 }
 
 function submitScore() {
@@ -806,19 +952,48 @@ function submitScore() {
   if (!nick || submitted) return;
   submitted = true;
   submitBtn.disabled = true;
-  submitBtn.textContent = '提交中…';
+  submitBtn.textContent = 'PK 中…';
   try { localStorage.setItem('flappyNick', nick); } catch (e) {}
+
+  const finish = (rank) => {
+    submitBtn.textContent = '已参战';
+    showPkResult(rank);
+    loadBoard(sideRankList);
+  };
+
+  const resetBtn = () => { submitBtn.textContent = '⚔️ 上榜 PK'; submitBtn.disabled = false; submitted = false; };
+
+  // 本地降级：同名去重（保留最高分）后算本地榜排名
+  const localPk = () => {
+    const arr = readLocalBoard();
+    const idx = arr.findIndex(r => r.nick === nick);
+    if (idx >= 0) {
+      if (score > arr[idx].score) arr[idx].score = score;
+    } else {
+      arr.push({ nick: nick, score: score });
+    }
+    writeLocalBoard(arr);
+    const map = {};
+    for (const r of arr) if (!map[r.nick] || r.score > map[r.nick].score) map[r.nick] = r;
+    const sorted = Object.values(map).sort((a, b) => b.score - a.score);
+    finish(sorted.findIndex(r => r.nick === nick) + 1);
+  };
+
+  if (apiBroken) { localPk(); return; }
+
   fetch('/api/scores', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ game: 'flappy', nick: nick, score: score })
   })
-    .then(r => {
-      if (r.status === 201) { submitBtn.textContent = '已上榜'; loadBoard(); }
-      else if (r.status === 429) { submitBtn.textContent = '太频繁啦'; submitted = false; submitBtn.disabled = false; }
-      else { submitBtn.textContent = '失败，重试'; submitted = false; submitBtn.disabled = false; }
+    .then(r => r.json().then(j => ({ status: r.status, j })))
+    .then(({ status, j }) => {
+      if (status === 201) { finish(j && j.rank ? j.rank : 0); }
+      else if (status === 404 || status === 502) { apiBroken = true; localPk(); }  // 无后端，走本地榜
+      else if (status === 429) { resetBtn(); showToast('提交太频繁，请稍后再试'); }
+      else { resetBtn(); showToast('上传失败：服务器错误（HTTP ' + status + '）'); }
     })
-    .catch(() => { submitBtn.textContent = '失败，重试'; submitted = false; submitBtn.disabled = false; });
+    .catch(() => { resetBtn(); showToast('网络卡顿，请稍后再试'); });
 }
 
 /* ---------- 事件 ---------- */
@@ -840,10 +1015,13 @@ document.addEventListener('keydown', e => {
 submitBtn.addEventListener('click', e => { e.stopPropagation(); submitScore(); });
 nickInput.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') submitScore(); });
 restartBtn.addEventListener('click', e => { e.stopPropagation(); resetGame(); });
+refreshBtn.addEventListener('click', e => { e.stopPropagation(); loadBoard(sideRankList); });
 
 initScenery();
 resetGame();
 paintLegendIcons();
+loadBoard(sideRankList);            // 右侧排行榜常驻显示
+setInterval(() => loadBoard(sideRankList), 30000);   // 30 秒自动刷新
 requestAnimationFrame(loop);
 
 /* ---------- 道具图鉴：复用游戏绘制函数，保证图标与游戏内一致 ---------- */
@@ -859,6 +1037,7 @@ function paintLegendIcons() {
     else if (type === 'heart') drawHeart(0, 0, t);
     else if (type === 'ghost') drawGhost(0, 0, t);
     else if (type === 'plus') drawPlusPotion(0, 0, t);
+    else if (type === 'max') drawMaxPotion(0, 0, t);
     else drawDoublePotion(0, 0, t);
     ctx = saved;
   });

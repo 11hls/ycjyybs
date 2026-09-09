@@ -1,2 +1,4 @@
 .workbuddy/
 cf-token.txt
+.wrangler/
+node_modules/

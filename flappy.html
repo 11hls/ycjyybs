@@ -3,13 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>一只蛙的数值崩坏</title>
+<title>一只青蛙的数值崩坏</title>
+<meta name="description" content="一只青蛙的数值崩坏：在数值崩坏的世界里，你是一只青蛙。穿越竹子、捡道具、刷分数，挑战竹林排行榜 TOP10。" />
+<meta property="og:title" content="一只青蛙的数值崩坏" />
+<meta property="og:description" content="一只青蛙的数值崩坏：在数值崩坏的世界里，你是一只青蛙。穿越竹子、捡道具、刷分数，挑战竹林排行榜 TOP10。" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ycjyybs.pages.dev/flappy" />
+<meta property="og:image" content="https://ycjyybs.pages.dev/favicon.svg" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="一只青蛙的数值崩坏" />
+<meta name="twitter:description" content="一只青蛙的数值崩坏：在数值崩坏的世界里，你是一只青蛙。穿越竹子、捡道具、刷分数，挑战竹林排行榜 TOP10。" />
+<meta name="theme-color" content="#0f172a" />
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { height:100%; }
   body {
-    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    font-family:system-ui,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
     background:#0f172a;
     background-image:radial-gradient(ellipse at 50% -20%, rgba(34,197,94,.14), transparent 60%);
     color:#e2e8f0;
@@ -26,8 +36,20 @@
     font-size:20px; font-weight:600; letter-spacing:2px;
     color:#f0fdf4;
     text-shadow:0 2px 12px rgba(34,197,94,.35);
+    display:flex; align-items:center; gap:10px;
   }
   h1 small { font-size:12px; font-weight:400; color:#7dd3a8; letter-spacing:1px; margin-left:8px; }
+  .audio-btn {
+    width:32px; height:32px; border-radius:9999px;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:rgba(15,23,42,.7); color:#a7f3d0;
+    border:1px solid rgba(167,243,208,.35);
+    cursor:pointer; font-size:15px; line-height:1;
+    transition:all .18s;
+  }
+  .audio-btn:hover { background:rgba(34,197,94,.2); border-color:rgba(74,222,128,.65); transform:translateY(-1px); }
+  .audio-btn.muted { color:#94a3b8; border-color:rgba(148,163,184,.35); background:rgba(15,23,42,.7); }
+  .audio-btn.muted:hover { color:#cbd5e1; border-color:rgba(203,213,225,.5); }
   .stage {
     position:relative; display:inline-block;
     /* 画布保持 7:6 比例不变形；高度驱动宽度，宽屏铺满图鉴与排行榜之间，窄屏用视口宽兜底 */
@@ -37,6 +59,9 @@
     background:#bae6fd;
     touch-action:none; user-select:none; -webkit-user-select:none;
     cursor:pointer;
+  }
+  .wrap:has(.legend.collapsed) .stage {
+    width:min(calc((100vh - 84px) * 7 / 6), calc(100vw - 386px));
   }
   canvas { display:block; width:100%; height:auto; }
   #hud {
@@ -245,7 +270,7 @@
   </aside>
 
   <div class="main">
-  <h1>一只蛙的数值崩坏</h1>
+  <h1>🐸 一只青蛙的数值崩坏<button class="audio-btn" id="audioBtn" type="button" title="静音/开启声音（点击画面开始游戏后才会出声）">🔊</button></h1>
   <div class="stage" id="stage">
     <canvas id="game" width="1400" height="1200"></canvas>
     <div id="hud" class="ready"><span id="hudScore">0</span><span id="hudHearts">❤ 3/3</span></div>
@@ -392,9 +417,9 @@ function renderHearts() {
   hudHearts.textContent = '❤ ' + hearts + '/' + maxHearts;
 }
 
-// 排行榜分数上限：一兆减一（999,999,999,999）。数值崩坏玩法分数可指数级膨胀，
-// 超过一兆的展示/提交均按此封顶（与服务端 functions/api/scores.js 的 SCORE_CAP 一致）
-const SCORE_CAP = 999999999999;
+// 排行榜分数上限：100 兆（100,000,000,000,000）。数值崩坏玩法分数可指数级膨胀，
+// 超过上限的展示/提交均按此封顶（与服务端 functions/api/scores.js 的 SCORE_CAP 一致）
+const SCORE_CAP = 100000000000000;
 
 function renderScore() {
   if (score > SCORE_CAP) score = SCORE_CAP;   // 超过一兆直接钳到一兆减一（内部状态同步封顶）
@@ -1115,6 +1140,245 @@ function paintLegendIcons() {
     ctx = saved;
   });
 }
+
+/* ============== 音效 & 背景音乐（Web Audio 合成，无外部文件） ============== */
+const SFX = (function(){
+  let ctx = null, master = null, bgmGain = null, bgmTimer = null, bgmStep = 0;
+  let muted = false;
+  const KEY = 'flappyMuted';
+  try { muted = localStorage.getItem(KEY) === '1'; } catch(e){}
+
+  // --- 外部音效文件（音频池：预创建 3 实例复用，避免运行时 cloneNode 开销） ---
+  const POOL = 3;
+  const pools = {};
+  function loadSound(name, src) {
+    try {
+      pools[name] = [];
+      for (let i = 0; i < POOL; i++) {
+        const a = new Audio(src);
+        a.preload = 'auto';
+        pools[name].push(a);
+      }
+    } catch(e) {}
+  }
+  loadSound('jump', '游戏音效/青蛙跳跃.mp3');
+  loadSound('coin', '游戏音效/金币音效.mp3');
+  loadSound('heal', '游戏音效/回血.mp3');
+  loadSound('fullheal', '游戏音效/回满血.mp3');
+  loadSound('plus', '游戏音效/万年灵乳.mp3');
+  loadSound('ghost', '游戏音效/虚化药水.mp3');
+  loadSound('double', '游戏音效/双倍药水.mp3');
+  loadSound('max', '游戏音效/生质液.mp3');
+  // 背景音乐
+  const bgmAudio = new Audio('游戏音效/背景音乐.mp3');
+  bgmAudio.loop = true;
+  bgmAudio.volume = 0.15;
+  function playSound(name) {
+    if (muted || !pools[name]) return;
+    const pool = pools[name];
+    for (let i = 0; i < pool.length; i++) {
+      const a = pool[i];
+      if (a.ended || a.paused) {
+        a.currentTime = 0;
+        a.volume = 0.7;
+        a.play().catch(() => {});
+        return;
+      }
+    }
+    // 池满：复用第一个
+    pool[0].currentTime = 0;
+    pool[0].volume = 0.7;
+    pool[0].play().catch(() => {});
+  }
+
+  function ensure() {
+    if (ctx) return true;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = muted ? 0 : 0.6;
+      master.connect(ctx.destination);
+      bgmGain = ctx.createGain();
+      bgmGain.gain.value = 0.09;
+      bgmGain.connect(master);
+      return true;
+    } catch(e) { return false; }
+  }
+  function resume() { if (ensure() && ctx.state === 'suspended') ctx.resume(); }
+
+  function beep(freq, dur, type, vol, slide) {
+    if (!ensure() || muted) return;
+    const t0 = ctx.currentTime;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(freq, t0);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol || 0.25, t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(master);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  function chord(freqs, dur, type, vol) {
+    freqs.forEach((f, i) => setTimeout(() => beep(f, dur, type, vol), i * 35));
+  }
+
+  // --- 公开 API：各事件音效 ---
+  return {
+    flap:     () => { resume(); playSound('jump'); },
+    score:    () => { /* 穿柱不播音效 */ },
+    coin:     () => { resume(); playSound('coin'); },
+    heart:    () => { resume(); playSound('heal'); },
+    fullheal: () => { resume(); playSound('fullheal'); },
+    ghost:    () => { resume(); playSound('ghost'); },
+    plus:     () => { resume(); playSound('fullheal'); },
+    max:      () => { resume(); playSound('max'); },
+    double:   () => { resume(); playSound('double'); },
+    hurt:     () => { resume(); beep(220, 0.22, 'sawtooth',0.30, -140); },
+    die:    () => {
+      resume();
+      const seq = [[523,0.18],[440,0.18],[330,0.22],[262,0.28],[196,0.36]];
+      let t = 0;
+      seq.forEach(([f,d]) => { setTimeout(()=>beep(f, d, 'sawtooth', 0.32, -60), t); t += d*1000*0.7; });
+      SFX.stopBgm();
+    },
+    // --- BGM：背景音乐文件 ---
+    startBgm() {
+      if (muted) return;
+      bgmAudio.currentTime = 0;
+      bgmAudio.play().catch(() => {});
+      return;
+      if (!ensure() || muted || bgmTimer) return;
+      // Dorian-ish 旋律 + 每拍根音 bass；约 112bpm
+      const melody = [ // [midi-ish semitone offset from C4, beats(1=eighth)]
+        0,2,3,5, 7,5,3,2,  0,2,3,5, 10,7,5,3,
+        0,2,3,5, 7,5,3,2,  5,7,10,12, 10,7,5,3,
+      ]; // offsets (0=C4=261.6Hz)
+      const bassOffs = [-12,-7,-5,-12, -12,-7,-5,-7, -12,-7,-5,-12, -7,-9,-10,-7]; // per 2 melody notes -> 1 bass
+      function hz(off){ return 261.63 * Math.pow(2, off/12); }
+      const beatMs = 270; // eighth note
+      bgmStep = 0;
+      bgmTimer = setInterval(() => {
+        if (!ctx || muted) return;
+        const idx = bgmStep % melody.length;
+        const noteOff = melody[idx];
+        const bassIdx = Math.floor(bgmStep / 2) % bassOffs.length;
+        const bassOff = bassOffs[bassIdx];
+        const t0 = ctx.currentTime;
+        // melody (square, very short)
+        const o1 = ctx.createOscillator(), g1 = ctx.createGain();
+        o1.type = 'square'; o1.frequency.value = hz(noteOff);
+        g1.gain.setValueAtTime(0.0001, t0);
+        g1.gain.exponentialRampToValueAtTime(0.12, t0 + 0.01);
+        g1.gain.exponentialRampToValueAtTime(0.0001, t0 + beatMs/1000 * 0.9);
+        o1.connect(g1); g1.connect(bgmGain);
+        o1.start(t0); o1.stop(t0 + beatMs/1000);
+        // bass (triangle, every 2 melody notes)
+        if (bgmStep % 2 === 0) {
+          const o2 = ctx.createOscillator(), g2 = ctx.createGain();
+          o2.type = 'triangle'; o2.frequency.value = hz(bassOff);
+          g2.gain.setValueAtTime(0.0001, t0);
+          g2.gain.exponentialRampToValueAtTime(0.20, t0 + 0.02);
+          g2.gain.exponentialRampToValueAtTime(0.0001, t0 + (beatMs*2/1000) * 0.95);
+          o2.connect(g2); g2.connect(bgmGain);
+          o2.start(t0); o2.stop(t0 + beatMs*2/1000);
+        }
+        bgmStep++;
+      }, beatMs);
+    },
+    stopBgm() {
+      bgmAudio.pause();
+      if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; }
+    },
+    toggleMute(btnEl) {
+      muted = !muted;
+      try { localStorage.setItem(KEY, muted ? '1' : '0'); } catch(e){}
+      if (master) master.gain.value = muted ? 0 : 0.6;
+      bgmAudio.muted = muted;
+      if (btnEl) {
+        btnEl.textContent = muted ? '🔇' : '🔊';
+        btnEl.classList.toggle('muted', muted);
+      }
+      if (muted) SFX.stopBgm();
+      else if (state === 'playing') SFX.startBgm();
+    },
+    isMuted() { return muted; },
+    initBtn(btn) {
+      if (!btn) return;
+      btn.textContent = muted ? '🔇' : '🔊';
+      btn.classList.toggle('muted', muted);
+      btn.addEventListener('click', e => { e.stopPropagation(); SFX.toggleMute(btn); });
+    },
+  };
+})();
+
+/* 挂钩：在关键游戏事件上触发音效 */
+(function(){
+  // --- 覆盖原函数前先备份原始引用（用 Proxy-like 包装：直接替换关键点内调用） ---
+  // 1. 跳跃：flap()
+  const _flap = flap;
+  flap = function() {
+    const wasReady = state === 'ready';
+    _flap.apply(null, arguments);
+    SFX.flap();
+    if (wasReady && state === 'playing') SFX.startBgm(); // 开始起跳 → 播放BGM
+  };
+  // 2. 死亡：die()
+  const _die = die;
+  die = function() { _die.apply(null, arguments); SFX.die(); };
+  // 3. 受伤：hurt()
+  const _hurt = hurt;
+  hurt = function() { _hurt.apply(null, arguments); SFX.hurt(); };
+  // 4. 道具：applyItem -> 按类型调用
+  const _applyItem = applyItem;
+  applyItem = function(it) {
+    const wasFull = it && it.type === 'heart' && hearts >= maxHearts;
+    SFX._suppressScore = true;
+    _applyItem.apply(null, arguments);
+    setTimeout(() => { SFX._suppressScore = false; }, 200);
+    switch (it && it.type) {
+      case 'coin':   SFX.coin();   break;
+      case 'heart':  if (wasFull) SFX.double(); else SFX.heart(); break;
+      case 'ghost':  SFX.ghost();  break;
+      case 'plus':   SFX.plus();   break;
+      case 'max':    SFX.max();    break;
+      case 'double': SFX.double(); break;
+    }
+  };
+  // 5. 穿竹得分：在 loop 中 p.scored=true 赋值后立即触发（通过 patch renderScore 太泛，改用 monkey patch 那行代码后的 setter）
+  //    更简单：拦截 renderScore 不够精确；直接在 spawn/update 循环里捕获得分时机 → 用 MutationObserver 不现实，
+  //    改为包装 score 赋值：创建一个 setter 代理
+  let _lastScore = 0;
+  const _renderScore = renderScore;
+  renderScore = function() {
+    _renderScore.apply(null, arguments);
+    if (score > _lastScore) {
+      // 穿竹得分是 pipeMult 的整数倍且变化量恰好等于 pipeMult（道具会调用 addFloat 但分数也变，所以简单按"变大就播"）
+      // 但道具 coin/heart-full/max/double 已在 applyItem 里发声，这里会重复
+      // → 用一个"本帧道具加分"标记消重：applyItem 内部发生后 30ms 内 suppress
+      if (!SFX._suppressScore) SFX.score();
+    }
+    _lastScore = score;
+  };
+  // 让 applyItem 分支触发时 suppress 200ms
+  ['coin','heart','ghost','plus','max','double'].forEach(t => {
+    const orig = applyItem;
+    // 不再重复包装（applyItem 已被包装一次）——用 SFX._suppressScore 在 applyItem 开头/结尾处理
+  });
+
+  // 6. 重开：resetGame -> 如果再次点起跳才播BGM
+  const _reset = resetGame;
+  resetGame = function() {
+    SFX.stopBgm();
+    _lastScore = 0;
+    _reset.apply(null, arguments);
+  };
+})();
+
+SFX.initBtn(document.getElementById('audioBtn'));
 </script>
 </body>
 </html>

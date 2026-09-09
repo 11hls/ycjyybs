@@ -1,58 +1,58 @@
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN" class="scroll-smooth">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=700" />
 <title>余常进 | 个人主页</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <meta name="description" content="余常进，2027届本科，熟悉 Java、SSM 框架及前沿 AI 工具，中软国际实习中，秋招投递中。求职意向：AI应用开发 / 全栈开发 / 后端开发。" />
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        bg:      '#14161d',
-        card:    '#1b1e26',
-        line:    '#33363d',
-        soft:    '#d3d5dc',
-        dim:     '#a6a9b3',
-        brand:   '#3b82f6',
-        brand2:  '#38bdf8',
-      },
-      fontFamily: {
-        sans: ['Inter', '"Noto Sans SC"', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
-      },
-    },
-  },
-}
-</script>
+<meta property="og:title" content="余常进 | 个人主页" />
+<meta property="og:description" content="余常进，2027届本科，熟悉 Java、SSM 框架及前沿 AI 工具，中软国际实习中，秋招投递中。求职意向：AI应用开发 / 全栈开发 / 后端开发。" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ycjyybs.pages.dev/" />
+<meta property="og:image" content="https://ycjyybs.pages.dev/favicon.svg" />
+<meta property="og:locale" content="zh_CN" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="余常进 | 个人主页" />
+<meta name="twitter:description" content="余常进，2027届本科，熟悉 Java、SSM 框架及前沿 AI 工具，中软国际实习中，秋招投递中。求职意向：AI应用开发 / 全栈开发 / 后端开发。" />
+<meta name="twitter:image" content="https://ycjyybs.pages.dev/favicon.svg" />
+<meta name="theme-color" content="#14161d" />
+<link rel="stylesheet" href="tailwind.css" />
+<link rel="preload" as="video" href="https://d8j0ntlcm91z4.cloudfront.net/user_3GJaYKPxdnQG0Q9O26lu6DPmcHu/hf_20260805_192612_e00017a8-56b0-4957-935b-9ffd87663994.mp4" fetchpriority="high" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
   ::selection { background: rgba(59,130,246,.35); color:#fff; }
+  /* 毛玻璃：初始无模糊（加载前态），页面就绪后 .glass-on 触发平滑过渡到轻微通透 */
+  :root { --glass-blur: 8px; --glass-sat: 140%; }
+  body.glass-on { --glass-blur: 8px; --glass-sat: 140%; }
+
+  /* 顶部导航毛玻璃 */
+  .nav-glass {
+    background: rgba(15, 17, 23, 0.55);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background .3s ease, box-shadow .3s ease;
+  }
+  .nav-glass.scrolled {
+    background: rgba(15, 17, 23, 0.78);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  }
   html { color-scheme: dark; background:#14161d; }
   body { background:transparent; }
   /* 视频背景层（fixed 铺满，置于所有内容之下） */
   .video-bg {
-    position:fixed; inset:0; z-index:-2;
+    position:fixed; inset:0; z-index:-3;
     width:100%; height:100%;
     object-fit:cover; object-position:center;
   }
-  /* 导航栏：白色毛玻璃，高透光度 */
-  .nav-glass {
-    background:rgba(255,255,255,.08);
-    backdrop-filter:blur(20px) saturate(140%);
-    -webkit-backdrop-filter:blur(20px) saturate(140%);
-    border-bottom:1px solid rgba(255,255,255,.14);
-  }
   /* 导航链接胶囊：hover 白底高亮 + 蓝色辉光 */
   .nav-pill {
-    padding:.45rem 1.15rem;
+    padding:.6rem 1.4rem;
     border-radius:9999px;
-    font-size:.875rem;
+    font-size:.9rem;
     font-weight:500;
     color:#b8b8bd;
     transition:color .25s, background .25s, box-shadow .25s;
@@ -62,36 +62,207 @@ tailwind.config = {
     background:rgba(255,255,255,.14);
     box-shadow:0 0 18px rgba(56,189,248,.35), inset 0 0 0 1px rgba(255,255,255,.08);
   }
-  /* 视频上方暗色遮罩：压暗背景保证正文可读，带轻微上下渐变 */
+  /* 移动端：缩小胶囊间距，避免与右侧按钮重叠 */
+  @media (max-width: 767px) {
+    .nav-pill { padding: .45rem .9rem; font-size: .8rem; }
+  }
+
+  /* 视频上方暗色遮罩：默认暗度 30%，压暗背景保证正文可读 */
   .video-veil {
-    position:fixed; inset:0; z-index:-1;
+    position:fixed; inset:0; z-index:-2;
     background:
-      linear-gradient(180deg, rgba(9,9,11,.5) 0%, rgba(9,9,11,.32) 50%, rgba(9,9,11,.55) 100%),
-      rgba(9,9,11,.18);
+      linear-gradient(180deg, rgba(9,9,11,.38) 0%, rgba(9,9,11,.30) 50%, rgba(9,9,11,.40) 100%),
+      rgba(9,9,11,.30);
     pointer-events:none;
   }
-  /* Vetra 式居中蓝色光晕 */
-  .hero-glow {
-    position:absolute; top:-120px; left:50%; transform:translateX(-50%);
-    width:70%; height:340px; border-radius:9999px;
-    background:linear-gradient(90deg,#38bdf8,#3b82f6);
-    filter:blur(10rem); opacity:.2; pointer-events:none;
+  /* 雨滴 Canvas 层：在遮罩之上、内容之下 */
+  #rainCanvas {
+    position:fixed; inset:0; z-index:-1;
+    width:100%; height:100%;
+    pointer-events:none;
+    display:block;
   }
   .text-gradient { background:linear-gradient(90deg,#38bdf8,#3b82f6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  /* 欢迎语：纯白色静态文字，无动效 */
+  .hero-welcome { display:block; color:#fff; }
+  .hero-title { display:block; color:#fff; }
   .btn-primary {
     background:#3b82f6; color:#fff; transition:all .3s ease;
   }
   .btn-primary:hover { background:#2563eb; transform:translateY(-2px); box-shadow:0 8px 30px -8px rgba(59,130,246,.5); }
   .btn-ghost { transition:all .3s ease; }
   .btn-ghost:hover { background:rgba(255,255,255,.06); transform:translateY(-2px); }
-  .vcard { background:rgba(255,255,255,.05); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.14); border-radius:1rem; transition:all .3s ease; }
-  .vcard:hover { transform:translateY(-4px); border-color:rgba(59,130,246,.45); box-shadow:0 10px 40px -10px rgba(59,130,246,.2); }
+  /* 右上角"联系我"按钮：青色描边 + hover 扫光填充（原版 .button） */
+  .button {
+    padding: 1em 2em;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: #2c9caf;
+    transition: all 1000ms;
+    font-size: 15px;
+    position: relative;
+    overflow: hidden;
+    outline: 2px solid #2c9caf;
+    background-color: transparent;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .button:hover {
+    color: #ffffff;
+    transform: scale(1.1);
+    outline: 2px solid #70bdca;
+    box-shadow: 4px 5px 17px -4px #268391;
+  }
+  .button::before {
+    content: "";
+    position: absolute;
+    left: -50px;
+    top: 0;
+    width: 0;
+    height: 100%;
+    background-color: #2c9caf;
+    transform: skewX(45deg);
+    z-index: -1;
+    transition: width 1000ms;
+  }
+  .button:hover::before {
+    width: 250%;
+  }
+  @media (prefers-reduced-motion: reduce) { .button{transition:none} .button:hover{transform:none} .button::before{transition:none} }
+  /* 查看简历按钮：Uiverse animated-button（绿黄描边 + hover 圆形扩散 + 双箭头滑动） */
+  .animated-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 9px 22px;
+    border: 2px solid transparent;
+    font-size: 14px;
+    background-color: transparent;
+    border-radius: 100px;
+    font-weight: 600;
+    color: #7dd3fc;
+    box-shadow: 0 0 0 2px rgba(125,211,252,.45);
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    text-decoration: none;
+  }
+  .animated-button svg {
+    position: absolute;
+    width: 18px; height: 18px;
+    fill: #7dd3fc;
+    z-index: 9;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .animated-button .arr-1 { right: 12px; }
+  .animated-button .arr-2 { left: -25%; }
+  .animated-button .circle {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px; height: 16px;
+    background-color: #7dd3fc;
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .animated-button .text {
+    position: relative; z-index: 1;
+    transform: translateX(-12px);
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .animated-button:hover {
+    box-shadow: 0 0 0 12px transparent;
+    color: #212121;
+    border-radius: 12px;
+  }
+  .animated-button:hover .arr-1 { right: -25%; }
+  .animated-button:hover .arr-2 { left: 16px; }
+  .animated-button:hover .text { transform: translateX(12px); }
+  .animated-button:hover svg { fill: #212121; }
+  .animated-button:active { scale: 0.95; box-shadow: 0 0 0 4px rgba(125,211,252,.35); }
+  .animated-button:hover .circle { width: 160px; height: 160px; opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .animated-button, .animated-button *, .animated-button:hover * { transition:none !important; } .animated-button:active{scale:1} }
+  /* Among Us 风格开始游戏按钮（作用域限定 .play-btn-among，不影响其他按钮） */
+  .play-btn-among {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 10px;
+    height: 44px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(16,185,129,.55);
+    text-transform: uppercase;
+    text-decoration: none;
+    letter-spacing: 1px;
+    font-weight: 600;
+    font-size: 17px;
+    background-color: rgba(34,197,94,.55);
+    border: solid 2px rgba(255,255,255,.35);
+    border-radius: 50px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.5s ease;
+  }
+  .play-btn-among:active { transform: scale(0.9); transition: all 100ms ease; }
+  .play-btn-among svg { transition: all 0.5s ease; z-index: 2; width: 30px; height: 30px; }
+  .play-btn-among .play { transition: all 0.5s ease; transition-delay: 300ms; }
+  .play-btn-among:hover svg { transform: scale(3) translate(50%); }
+  .play-btn-among .now {
+    position: absolute;
+    left: 0;
+    transform: translateX(-100%);
+    transition: all 0.5s ease;
+    z-index: 2;
+  }
+  .play-btn-among:hover .now { transform: translateX(10px); transition-delay: 300ms; }
+  .play-btn-among:hover .play { transform: translateX(200%); transition-delay: 300ms; }
+  .vcard { background:rgba(255,255,255,.04); backdrop-filter:blur(var(--glass-blur)); -webkit-backdrop-filter:blur(var(--glass-blur)); border:1px solid rgba(59,130,246,.35); border-radius:1rem; transition:backdrop-filter .8s ease, -webkit-backdrop-filter .8s ease, transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
+  .vcard:hover { border-color:rgba(59,130,246,.7); transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,.35); }
+  .hobby-list { display:grid; grid-template-columns:repeat(2,1fr); gap:28px; perspective:1000px; }
+  .hobby-card { width:100%; height:180px; cursor:pointer; }
+  .hobby-card .card-inner { position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .6s cubic-bezier(.23,1,.32,1); }
+  .hobby-card:hover .card-inner { transform:rotateY(180deg); }
+  .hobby-front, .hobby-back { position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:24px; text-align:center; }
+  .hobby-front { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); }
+  .hobby-back { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); transform:rotateY(180deg); }
+  .hobby-icon { font-size:40px; }
+  .hobby-title { font-size:16px; color:#e2e8f0; font-weight:600; }
+  .hobby-desc { font-size:14px; color:#cbd5e1; line-height:1.7; }
+  .hobby-card.c1 .hobby-front { border-color:rgba(96,165,250,.3); }
+  .hobby-card.c2 .hobby-front { border-color:rgba(192,132,252,.3); }
+  .hobby-card.c3 .hobby-front { border-color:rgba(74,222,128,.3); }
+  .hobby-card.c4 .hobby-front { border-color:rgba(251,146,60,.3); }
+  @media (max-width:640px) { .hobby-list { grid-template-columns:1fr; gap:16px; } .hobby-card { height:150px; } }
+  .like-btn { display:inline-flex; align-items:center; gap:3px; font-size:12px; line-height:1; padding:3px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.55); background:transparent; transition:all .2s ease; cursor:pointer; font-family:`"JetBrains Mono`",ui-monospace,monospace; }
+  .like-btn:hover:not(:disabled) { color:#60a5fa; border-color:rgba(96,165,250,.5); }
+  .like-btn:disabled, .like-btn.liked { color:#60a5fa; border-color:rgba(96,165,250,.35); background:rgba(96,165,250,.08); cursor:default; opacity:.9; }
+  .msg-content { word-break:break-all; overflow-wrap:anywhere; line-break:anywhere; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+  /* 留言板右侧面板：固定高度 + 内部滚动 */
+  .msg-panel { min-height: 480px; }
+  @media (max-width: 768px) { .msg-panel { min-height: 320px; } }
+  @media (max-width: 480px) { .msg-panel { min-height: 240px; } }
+  .msg-scroll {
+    max-height: 560px; overflow-y:auto; padding-right:4px;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.2) transparent;
+  }
+  .msg-scroll::-webkit-scrollbar { width:6px; }
+  .msg-scroll::-webkit-scrollbar-track { background:transparent; }
+  .msg-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,.18); border-radius:3px; }
+  .msg-scroll::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.3); }
   .fade-up { opacity:0; transform:translateY(20px); animation:fadeUp .8s ease forwards; }
   @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
   .d1{animation-delay:.05s}.d2{animation-delay:.15s}.d3{animation-delay:.25s}.d4{animation-delay:.35s}
   @media (prefers-reduced-motion: reduce) { .fade-up{animation:none;opacity:1;transform:none} html{scroll-behavior:auto} }
   input:focus, textarea:focus { outline:none; border-color:rgba(59,130,246,.6); box-shadow:0 0 0 3px rgba(59,130,246,.15); }
-
   /* 滚动入场动效：未进入视口的模块整体模糊半透明缩小，进入后聚焦弹出 */
   .reveal {
     opacity:.15;
@@ -103,14 +274,6 @@ tailwind.config = {
   }
   .reveal.on { opacity:1; filter:none; transform:none; }
   @media (prefers-reduced-motion: reduce) { .reveal{opacity:1;filter:none;transform:none;transition:none} }
-
-  /* 顶部滚动进度条 */
-  #progressBar {
-    position:fixed; top:0; left:0; right:0; height:2px; z-index:60;
-    background:linear-gradient(90deg,#38bdf8,#3b82f6);
-    transform:scaleX(0); transform-origin:left;
-    pointer-events:none;
-  }
   /* 简历弹窗 */
   .resume-modal {
     position:fixed; inset:0; z-index:80; display:none;
@@ -130,6 +293,13 @@ tailwind.config = {
     transition:background .2s;
   }
   .resume-close:hover { background:rgba(255,255,255,.24); }
+  /* 顶部滚动进度条 */
+  #progressBar {
+    position:fixed; top:0; left:0; right:0; height:2px; z-index:60;
+    background:linear-gradient(90deg,#38bdf8,#3b82f6);
+    transform:scaleX(0); transform-origin:left;
+    pointer-events:none;
+  }
   /* 小游戏下拉：hover / focus-within 弹出游戏预览 */
   .nav-item { position:relative; }
   .games-dropdown {
@@ -137,9 +307,9 @@ tailwind.config = {
     transform:translateX(-50%) translateY(8px);
     display:flex; gap:8px; padding:8px;
     border-radius:16px;
-    background:rgba(22,25,32,.9);
-    backdrop-filter:blur(20px) saturate(140%);
-    -webkit-backdrop-filter:blur(20px) saturate(140%);
+    background:rgba(22,25,32,.82);
+    backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+    -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
     border:1px solid rgba(255,255,255,.14);
     box-shadow:0 18px 50px -12px rgba(0,0,0,.6);
     opacity:0; visibility:hidden; pointer-events:none;
@@ -158,7 +328,7 @@ tailwind.config = {
   }
   .games-dropdown::before {   /* 小三角 */
     content:''; position:absolute; top:-5px; left:50%; transform:translateX(-50%) rotate(45deg);
-    width:10px; height:10px; background:rgba(22,25,32,.9);
+    width:10px; height:10px; background:rgba(22,25,32,.82);
     border-top-left-radius:3px; border-top:1px solid rgba(255,255,255,.14); border-left:1px solid rgba(255,255,255,.14);
   }
   .game-card {
@@ -176,27 +346,56 @@ tailwind.config = {
   .game-card .g-name { font-size:.875rem; font-weight:600; color:#e7e8ec; }
   .game-card .g-desc { font-size:.75rem; color:#a6a9b3; margin-top:2px; }
   @media (prefers-reduced-motion: reduce) { .games-dropdown{transition:none} .game-card:hover{transform:none} }
+
+/* ===== 换背景功能 ===== */
+.bg-switcher { position: relative; display: flex; align-items: center; gap: 10px; }
+.bg-toggle-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+  color: #d1d5db; cursor: pointer; transition: all .25s ease;
+  flex-shrink: 0;
+}
+.bg-toggle-btn:hover {
+  color: #fff; background: rgba(255,255,255,.16);
+  box-shadow: 0 0 18px rgba(56,189,248,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.bg-toggle-btn:active { transform: scale(.9); }
+.bg-toggle-btn svg { width: 20px; height: 20px; transition: transform .3s ease; }
+.bg-toggle-btn:hover svg { transform: rotate(90deg); }
+.bg-toast {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  padding: 4px 10px; font-size: .75rem; color: #fff; white-space: nowrap;
+  background: rgba(15,17,23,.85); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.12); border-radius: 8px;
+  opacity: 0; transform: translateY(-4px); pointer-events: none;
+  transition: opacity .3s ease, transform .3s ease;
+  z-index: 100;
+}
+.bg-toast.show { opacity: 1; transform: translateY(0); }
+#rainToggleBtn.active {
+  color: #38bdf8; background: rgba(56,189,248,.15);
+  box-shadow: 0 0 14px rgba(56,189,248,.4), inset 0 0 0 1px rgba(56,189,248,.3);
+}
 </style>
 </head>
 <body class="font-sans text-neutral-200 antialiased overflow-x-hidden">
-
+  <canvas id="rainCanvas"></canvas>
 <!-- 滚动进度条 -->
 <div id="progressBar"></div>
-
 <!-- 视频背景（autoplay 静音循环，playsinline 保证 iOS 自动播放） -->
-<video class="video-bg" autoplay muted loop playsinline preload="auto"
-  src="https://d8j0ntlcm91z4.cloudfront.net/user_3GJaYKPxdnQG0Q9O26lu6DPmcHu/hf_20260805_192612_e00017a8-56b0-4957-935b-9ffd87663994.mp4"></video>
-<!-- 暗色遮罩层 -->
-<div class="video-veil"></div>
-
-<header class="nav-glass sticky top-0 w-full h-16 z-50">
+<video id="bgVideo" class="video-bg" autoplay muted loop playsinline preload="auto" src="./xiong.mp4" onerror="this.style.display='none'"></video>
+<img id="bgImage" class="video-bg" style="display:none" alt="">
+<!-- 暗色遮罩层（暗度可调节） -->
+<div class="video-veil" id="bgVeil"></div>
+<header class="nav-glass fixed top-0 left-0 right-0 w-full h-20 z-50">
   <nav class="relative max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
-    <a href="#hero" class="flex items-center gap-2 text-lg font-semibold text-white tracking-tight">
+    <a href="#hero" class="flex items-center gap-2 text-lg font-display font-semibold text-white tracking-tight">
       <svg class="w-5 h-5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 2-8-8 2-3.5 3.5a2.5 2.5 0 0 0 3 3L16 16Z"/><path d="M4 20 8.5 15.5"/></svg>
       余常进
     </a>
     <!-- 导航链接组：居中白色玻璃胶囊，hover 高亮 + 蓝光 -->
-    <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-white/8 px-1.5 py-1.5">
+    <div class="flex absolute left-1/2 -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-white/8 px-1.5 py-1.5">
       <a href="#about" class="nav-pill">关于我</a>
       <div class="nav-item" id="gamesNav">
         <button type="button" class="nav-pill inline-flex items-center gap-1" aria-haspopup="true" aria-expanded="false">
@@ -207,144 +406,164 @@ tailwind.config = {
           <a class="game-card" href="./flappy.html" role="menuitem">
             <span class="game-icon" style="background:rgba(34,197,94,.15); border:1px solid rgba(34,197,94,.35);">🐸</span>
             <span>
-              <span class="g-name block">一只蛙的数值崩坏</span>
-              <span class="g-desc block">在数值崩坏的世界里，你是一只青蛙。</span>
+              <span class="g-name block">一只青蛙的数值崩坏</span>
+              
             </span>
           </a>
         </div>
       </div>
       <a href="#board" class="nav-pill">留言板</a>
     </div>
-    <div class="hidden md:flex items-center">
-      <a href="#contact" class="btn-primary inline-flex items-center gap-2 rounded-md text-sm font-medium h-9 px-4 py-2">
-        联系我
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
-    </div>
-    <button id="menuBtn" class="md:hidden text-soft hover:text-white transition-colors" aria-label="打开菜单">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-    </button>
-  </nav>
-  <div id="mobileMenu" class="hidden md:hidden nav-glass border-t border-white/10">
-    <div class="px-6 py-4 flex flex-col gap-4 text-sm font-medium text-soft">
-      <a href="#about" class="hover:text-white transition-colors">关于我</a>
-      <div class="flex flex-col gap-3">
-        <span class="text-dim">小游戏</span>
-        <div class="ml-3 flex flex-col gap-3">
-          <a href="./flappy.html" class="hover:text-white transition-colors">🐸 一只蛙的数值崩坏</a>
-        </div>
+    <div class="flex items-center gap-2">
+      <!-- 换背景按钮（点一下换一个） -->
+      <div class="bg-switcher">
+        <button type="button" id="rainToggleBtn" class="bg-toggle-btn" aria-label="开关下雨" title="开关下雨">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a6 6 0 0 0-5.6 3.9A4 4 0 0 0 7 14h1a5 5 0 0 1 9.6-1.5A3.5 3.5 0 0 0 17 5.3 6 6 0 0 0 12 2Z"/><path d="M8 18l-1 2M12 18l-1 2M16 18l-1 2"/></svg>
+        </button>
+        <button type="button" id="bgToggleBtn" class="bg-toggle-btn" aria-label="切换背景" title="点击切换背景">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20 1.5 1.5 0 0 0 1.06-2.56A1.5 1.5 0 0 1 14 16a2 2 0 0 0 2-2 2 2 0 0 1 2-2h0a2 2 0 0 0 2-2 10 10 0 0 0-8-10Z"/></svg>
+        </button>
+        <span class="bg-toast" id="bgToast"></span>
       </div>
-      <a href="#board" class="hover:text-white transition-colors">留言板</a>
-      <a href="#contact" class="btn-primary inline-flex justify-center items-center rounded-md h-9 px-4 py-2">联系我</a>
+      <button type="button" onclick="location.href='#contact'" class="animated-button inline-flex">
+        <svg viewBox="0 0 24 24" class="arr-2" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"></path>
+        </svg>
+        <span class="text">联系我</span>
+        <span class="circle"></span>
+        <svg viewBox="0 0 24 24" class="arr-1" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"></path>
+        </svg>
+      </button>
     </div>
-  </div>
+  </nav>
 </header>
-
-<main class="relative z-40">
-
+<main class="relative z-40 pt-20">
 <!-- Hero -->
 <section id="hero" class="relative py-24 lg:py-36">
   <div class="hero-glow"></div>
   <div class="max-w-6xl mx-auto px-6 flex flex-col items-center text-center gap-y-8">
     <div class="fade-up d1 inline-flex items-center gap-2 rounded-full border border-line bg-card px-4 py-1.5">
       <span class="h-1.5 w-1.5 rounded-full bg-brand animate-pulse"></span>
-      <span class="text-xs font-medium text-soft tracking-wide">2027届本科 · 中软国际实习中 · 秋招投递中</span>
+      <span class="text-xs font-sans font-medium text-soft">2027届本科 · 实习中 · 秋招投递中</span>
     </div>
-    <h1 class="fade-up d2 text-4xl md:text-5xl lg:text-7xl font-bold text-white !leading-tight max-w-4xl">
-      欢迎来到<br class="lg:hidden" /><span class="text-gradient">我的个人主页</span>
+    <h1 class="text-4xl md:text-5xl lg:text-7xl font-display font-bold !leading-tight max-w-4xl cursor-default">
+      <span class="hero-welcome">欢迎来到</span>
+      <span class="hero-title">我的个人主页</span>
     </h1>
-    <p class="fade-up d3 max-w-xl text-base lg:text-lg text-soft leading-relaxed">
-      你好，我是余常进。熟悉 Java、SSM 框架及前沿 AI 工具，
-      喜欢把想法做成能跑起来的东西。
-    </p>
     <div class="fade-up d3 flex flex-wrap items-center justify-center gap-2 text-sm">
       <span class="text-dim mr-1">求职意向</span>
-      <span class="px-4 py-1.5 rounded-full bg-brand/10 border border-brand/30 text-brand font-medium">AI应用开发</span>
-      <span class="px-4 py-1.5 rounded-full bg-brand2/10 border border-brand2/30 text-brand2 font-medium">全栈开发</span>
-      <span class="px-4 py-1.5 rounded-full bg-white/5 border border-line text-soft font-medium">后端开发</span>
+      <span class="px-4 py-1.5 rounded-full bg-brand2/15 border border-brand2/40 text-brand2 font-medium">AI应用开发</span>
+      <span class="px-4 py-1.5 rounded-full bg-brand2/15 border border-brand2/40 text-brand2 font-medium">全栈开发</span>
+      <span class="px-4 py-1.5 rounded-full bg-brand2/15 border border-brand2/40 text-brand2 font-medium">后端开发</span>
     </div>
     <div class="fade-up d4 flex flex-wrap items-center justify-center gap-4 mt-2">
-      <a href="./resume-1.png" onclick="openResume(); return false;" class="btn-primary group inline-flex items-center gap-2 rounded-md text-sm font-semibold h-11 px-8">
-        查看简历
-        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
-      <a href="#contact" class="btn-ghost inline-flex items-center rounded-md text-sm font-medium text-soft border border-line h-11 px-8">联系我</a>
+      <button type="button" onclick="openResume(); return false;" class="button">查看简历</button>
     </div>
   </div>
 </section>
-
 <!-- 关于我 -->
 <section id="about" class="reveal py-20 lg:py-24">
   <div class="max-w-6xl mx-auto px-6">
     <div class="flex flex-col items-center text-center mb-14">
-      <h2 class="text-2xl lg:text-4xl font-medium text-gradient">关于我</h2>
-      <p class="text-sm text-dim mt-3">Java 后端 · 中软国际实习 · 持续学习中</p>
+      <h2 class="text-2xl lg:text-4xl font-display font-medium text-gradient">关于我</h2>
+      <p class="text-sm text-dim mt-3">后端开发 · 中软国际实习 · 持续学习中</p>
     </div>
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="vcard md:col-span-2 p-8 lg:p-10">
+    <div class="vcard p-8 lg:p-10">
         <p class="text-soft leading-relaxed">
-          我是余常进，2027届本科毕业生。技术栈以 Java 后端为主，熟悉 SSM（Spring + SpringMVC + MyBatis）框架，
-          同时持续关注并使用 AI 编程与效率工具，相信 AI 会重塑开发方式，也希望能站在这个方向上。
+          你好，我是余常进，2027届本科，目前在中软国际实习，参与真实项目的开发与维护，同时积极投递秋招。
         </p>
         <p class="text-soft leading-relaxed mt-4">
-          目前在中软国际实习，参与真实项目的开发与维护，同时积极投递秋招。
+          技术栈以 Java 后端为主，熟悉 SSM（Spring + SpringMVC + MyBatis）框架，能够独立完成从接口设计、业务逻辑到数据库落地的完整链路。我喜欢把想法做成能跑起来的东西——小到一个顺手的命令行工具，大到一个完整的 Web 应用，享受从无到有的搭建过程。
+        </p>
+        <p class="text-soft leading-relaxed mt-4">
+          我也持续关注并使用 AI 编程与效率工具，相信 AI 会重塑开发方式。相比单纯把 AI 当工具用，我更希望能站在这个方向上，把 AI 能力真正融入工程实践，去思考"哪些环节可以被 AI 重新设计"，而不只是"让 AI 帮我写几行代码"。
+        </p>
+        <p class="text-soft leading-relaxed mt-4">
+          代码之外，我喜欢用摄影记录城市角落、用夜跑清空大脑，也会Vibe Coding几个小游戏。这些看似无关的爱好，其实和写代码是同一件事——保持好奇，持续创造。
+        </p>
+        <p class="text-soft leading-relaxed mt-4 font-medium text-white/90">
           目标是成为一名能独立负责模块、懂业务也懂技术的开发者。
         </p>
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="vcard p-5 text-center">
-          <div class="text-2xl mb-2">💻</div>
-          <p class="text-xs text-soft">写代码 / 折腾工具</p>
+  </div>
+</section>
+<!-- 兴趣爱好 -->
+<section id="hobbies" class="reveal py-20 lg:py-24">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex flex-col items-center text-center mb-14">
+      <h2 class="text-2xl lg:text-4xl font-display font-medium text-gradient">兴趣爱好</h2>
+      <p class="text-sm text-dim mt-3">代码之外的生活</p>
+    </div>
+    <div class="hobby-list">
+      <div class="hobby-card c1">
+        <div class="card-inner">
+          <div class="hobby-front"><span class="hobby-icon">💻</span><span class="hobby-title">写代码 / 折腾工具</span></div>
+          <div class="hobby-back"><p class="hobby-desc">喜欢写代码。热衷于将脑海里的想法落地成真实可用的作品。会尝试开发网页、小游戏等demo项目，从设计逻辑、编写代码到部署上线完整走通。遇到报错愿意耐心调试，享受程序跑通那一刻带来的成就感。</p></div>
         </div>
-        <div class="vcard p-5 text-center">
-          <div class="text-2xl mb-2">📷</div>
-          <p class="text-xs text-soft">摄影</p>
+      </div>
+      <div class="hobby-card c2">
+        <div class="card-inner">
+          <div class="hobby-front"><span class="hobby-icon">📷</span><span class="hobby-title">摄影</span></div>
+          <div class="hobby-back"><p class="hobby-desc">我喜欢摄影。尤其是风光摄影，喜欢一个人探索世界，比起刻意的摆拍，我更喜欢感受世界的宏大与细微，记录自己看过的美景、吃过的美食、经历过的有意义的事，把生活里转瞬即逝的片段记录下来，享受记录世界的过程。</p></div>
         </div>
-        <div class="vcard p-5 text-center">
-          <div class="text-2xl mb-2">🏃</div>
-          <p class="text-xs text-soft">慢跑</p>
+      </div>
+      <div class="hobby-card c3">
+        <div class="card-inner">
+          <div class="hobby-front"><span class="hobby-icon">🏃</span><span class="hobby-title">夜跑</span></div>
+          <div class="hobby-back"><p class="hobby-desc">喜欢夜跑。每周1-2次5公里，夜晚慢跑既是身体的放松，也是整理思绪的过程。在跑步中锻炼耐力，舒缓压力，保持自律，维持良好的身心状态。</p></div>
         </div>
-        <div class="vcard p-5 text-center">
-          <div class="text-2xl mb-2">🎮</div>
-          <p class="text-xs text-soft">小游戏</p>
+      </div>
+      <div class="hobby-card c4">
+        <div class="card-inner">
+          <div class="hobby-front"><span class="hobby-icon">🎮</span><span class="hobby-title">游戏</span></div>
+          <div class="hobby-back"><p class="hobby-desc">爱好游戏。竞技类游戏喜欢王者荣耀和永劫无间，同时也喜欢优秀的独立游戏，例如星露谷物语、潜水员戴夫、空洞骑士、奥日等，喜欢在游戏里体会作者天马行空的想象力与巧妙的设计，给自己提供灵感。</p></div>
         </div>
       </div>
     </div>
   </div>
 </section>
-
 <!-- 小游戏 -->
 <section id="games" class="reveal py-20 lg:py-24">
   <div class="max-w-6xl mx-auto px-6">
     <div class="flex flex-col items-center text-center mb-14">
-      <h2 class="text-2xl lg:text-4xl font-medium text-gradient">小游戏</h2>
+      <h2 class="text-2xl lg:text-4xl font-display font-medium text-gradient">小游戏</h2>
       <p class="text-sm text-dim mt-3">忙里偷闲，放松一下</p>
     </div>
     <a href="./flappy.html" class="vcard group no-underline max-w-3xl mx-auto p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6">
       <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shrink-0" style="background:rgba(34,197,94,.15); border:1px solid rgba(34,197,94,.35);">🐸</div>
       <div class="flex-1 text-center md:text-left">
-        <h3 class="text-lg font-semibold text-white group-hover:text-brand2 transition-colors">一只蛙的数值崩坏</h3>
-        <p class="text-sm text-dim mt-1">在数值崩坏的世界里，你是一只青蛙。</p>
-        <p class="text-xs text-dim/70 mt-2">Canvas 手绘小游戏 · 支持排行榜 PK</p>
+        <h3 class="text-lg font-semibold text-white group-hover:text-brand2 transition-colors">一只青蛙的数值崩坏</h3>
+        <p class="text-sm text-dim mt-1">在数值崩坏的世界里，你是一只青蛙…</p>
       </div>
-      <div class="btn-primary inline-flex items-center gap-2 rounded-md text-sm font-semibold h-11 px-8 shrink-0">
-        开始游戏
-        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </div>
+      <span class="play-btn-among" role="button" aria-label="开始游戏">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42 42" width="36" height="36" aria-hidden="true">
+          <rect width="36" height="36" x="0" y="0" fill="rgba(16,185,129,.18)"></rect>
+          <path fill="#10b981" d="M38.67,42H11.52C11.27,40.62,11,38.57,11,36c0-5,0-11,0-11s1.44-7.39,3.22-9.59 c1.67-2.06,2.76-3.48,6.78-4.41c3-0.7,7.13-0.23,9,1c2.15,1.42,3.37,6.67,3.81,11.29c1.49-0.3,5.21,0.2,5.5,1.28 C40.89,30.29,39.48,38.31,38.67,42z"></path>
+          <path fill="#047857" d="M39.02,42H11.99c-0.22-2.67-0.48-7.05-0.49-12.72c0.83,4.18,1.63,9.59,6.98,9.79 c3.48,0.12,8.27,0.55,9.83-2.45c1.57-3,3.72-8.95,3.51-15.62c-0.19-5.84-1.75-8.2-2.13-8.7c0.59,0.66,3.74,4.49,4.01,11.7 c0.03,0.83,0.06,1.72,0.08,2.66c4.21-0.15,5.93,1.5,6.07,2.35C40.68,33.85,39.8,38.9,39.02,42z"></path>
+          <path fill="#212121" d="M35,27.17c0,3.67-0.28,11.2-0.42,14.83h-2C32.72,38.42,33,30.83,33,27.17 c0-5.54-1.46-12.65-3.55-14.02c-1.65-1.08-5.49-1.48-8.23-0.85c-3.62,0.83-4.57,1.99-6.14,3.92L15,16.32 c-1.31,1.6-2.59,6.92-3,8.96v10.8c0,2.58,0.28,4.61,0.54,5.92H10.5c-0.25-1.41-0.5-3.42-0.5-5.92l0.02-11.09 c0.15-0.77,1.55-7.63,3.43-9.94l0.08-0.09c1.65-2.03,2.96-3.63,7.25-4.61c3.28-0.76,7.67-0.25,9.77,1.13 C33.79,13.6,35,22.23,35,27.17z"></path>
+          <path fill="#0f766e" d="M17.165,17.283c5.217-0.055,9.391,0.283,9,6.011c-0.391,5.728-8.478,5.533-9.391,5.337 c-0.913-0.196-7.826-0.043-7.696-5.337C9.209,18,13.645,17.32,17.165,17.283z"></path>
+          <path fill="#212121" d="M40.739,37.38c-0.28,1.99-0.69,3.53-1.22,4.62h-2.43c0.25-0.19,1.13-1.11,1.67-4.9 c0.57-4-0.23-11.79-0.93-12.78c-0.4-0.4-2.63-0.8-4.37-0.89l0.1-1.99c1.04,0.05,4.53,0.31,5.71,1.49 C40.689,24.36,41.289,33.53,40.739,37.38z"></path>
+          <path fill="#5eead4" d="M10.154,20.201c0.261,2.059-0.196,3.351,2.543,3.546s8.076,1.022,9.402-0.554 c1.326-1.576,1.75-4.365-0.891-5.267C19.336,17.287,12.959,16.251,10.154,20.201z"></path>
+          <path fill="#212121" d="M17.615,29.677c-0.502,0-0.873-0.03-1.052-0.069c-0.086-0.019-0.236-0.035-0.434-0.06 c-5.344-0.679-8.053-2.784-8.052-6.255c0.001-2.698,1.17-7.238,8.986-7.32l0.181-0.002c3.444-0.038,6.414-0.068,8.272,1.818 c1.173,1.191,1.712,3,1.647,5.53c-0.044,1.688-0.785,3.147-2.144,4.217C22.785,29.296,19.388,29.677,17.615,29.677z M17.086,17.973 c-7.006,0.074-7.008,4.023-7.008,5.321c-0.001,3.109,3.598,3.926,6.305,4.27c0.273,0.035,0.48,0.063,0.601,0.089 c0.563,0.101,4.68,0.035,6.855-1.732c0.865-0.702,1.299-1.57,1.326-2.653c0.051-1.958-0.301-3.291-1.073-4.075 c-1.262-1.281-3.834-1.255-6.825-1.222L17.086,17.973z"></path>
+          <path fill="#ccfbf1" d="M15.078,19.043c1.957-0.326,5.122-0.529,4.435,1.304c-0.489,1.304-7.185,2.185-7.185,0.652 C12.328,19.467,15.078,19.043,15.078,19.043z"></path>
+        </svg>
+        <span class="now">now!</span>
+        <span class="play">play</span>
+      </span>
     </a>
   </div>
 </section>
-
 <!-- 留言板 -->
-<section id="board" class="reveal py-20 lg:py-24">
+<section id="board" class="reveal py-28 lg:py-32">
   <div class="max-w-6xl mx-auto px-6">
     <div class="flex flex-col items-center text-center mb-14">
-      <h2 class="text-2xl lg:text-4xl font-medium text-gradient">留言板</h2>
-      <p class="text-sm text-dim mt-3">路过就留句话吧</p>
+      <h2 class="text-2xl lg:text-4xl font-display font-medium text-gradient">留言板</h2>
+      <p class="text-sm text-dim mt-3">说点什么吧</p>
     </div>
     <div class="grid md:grid-cols-5 gap-6">
-      <div class="vcard md:col-span-2 p-8">
-        <form id="msgForm" class="space-y-5">
+      <div class="vcard md:col-span-2 p-8 flex flex-col">
+        <form id="msgForm" class="space-y-5 flex-1 flex flex-col justify-center">
           <div>
             <label for="msgNick" class="block text-xs font-medium text-soft mb-2">昵称</label>
             <input id="msgNick" type="text" maxlength="20" placeholder="你的昵称"
@@ -352,61 +571,156 @@ tailwind.config = {
           </div>
           <div>
             <label for="msgContent" class="block text-xs font-medium text-soft mb-2">留言内容</label>
-            <textarea id="msgContent" rows="4" maxlength="200" placeholder="随便聊聊…"
+            <textarea id="msgContent" rows="4" maxlength="100" placeholder="随便聊聊…"
               class="w-full rounded-md bg-transparent border border-white/25 px-4 py-3 text-sm text-white placeholder:text-dim/70 resize-none transition-all focus:border-white/50"></textarea>
-          </div>
+            <div class="flex justify-end mt-1"><span id="msgCountLabel" class="text-[11px] text-dim font-mono">0 / 100</span></div>          </div>
           <button type="submit" class="btn-primary w-full rounded-md text-sm font-semibold h-11 px-6">
             提交留言
           </button>
         </form>
       </div>
-      <div class="md:col-span-3">
-        <div id="msgList" class="space-y-4"></div>
-        <p id="msgEmpty" class="hidden text-sm text-dim text-center py-10 border border-dashed border-line rounded-xl">
-          还没有留言，来抢个沙发吧
-        </p>
+      <div class="md:col-span-3 vcard p-5 lg:p-6 flex flex-col msg-panel">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+          <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+            <svg class="w-4 h-4 text-brand2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            最新留言
+          </h3>
+          <span id="msgCount" class="text-xs text-dim font-sans">加载中…</span>
+        </div>
+        <div id="msgScroll" class="msg-scroll flex-1 min-h-0">
+          <div id="msgList" class="flex flex-col gap-3"></div>
+          <p id="msgEmpty" class="hidden text-sm text-dim text-center py-12 border border-dashed border-line rounded-xl">
+            还没有留言，来抢个沙发吧
+          </p>
+        </div>
       </div>
     </div>
   </div>
 </section>
-
 <!-- 联系方式 -->
 <section id="contact" class="reveal py-20 lg:py-24">
   <div class="max-w-6xl mx-auto px-6">
-    <div class="relative overflow-hidden rounded-[2rem] border border-white/15 backdrop-blur-md px-8 py-16 lg:py-20 text-center" style="background:rgba(255,255,255,.05)">
+    <div class="relative overflow-hidden rounded-[2rem] border border-white/15 backdrop-blur-md px-8 py-16 lg:py-20 text-center" style="background:rgba(255,255,255,.04)">
       <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-2/3 h-56 rounded-full bg-gradient-to-r from-brand2 to-brand blur-[6rem] opacity-20 pointer-events-none"></div>
-      <h2 class="text-2xl lg:text-4xl font-medium text-white mb-4">想聊聊？随时欢迎</h2>
+      <h2 class="text-2xl lg:text-4xl font-display font-medium text-white mb-4">想聊聊？随时欢迎</h2>
       <p class="text-sm text-soft mb-10">邮箱来信看到就会回</p>
       <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-        <div class="btn-ghost w-full sm:w-auto text-sm px-6 py-3 rounded-lg border border-line bg-bg/60 inline-flex items-center justify-center gap-3 select-all">
+        <a href="https://github.com/11hls" target="_blank" rel="noopener noreferrer" class="btn-ghost w-full sm:w-auto text-sm px-6 py-3 rounded-lg border border-line bg-bg/60 inline-flex items-center justify-center gap-3 select-all">
           <svg class="w-4 h-4 text-soft shrink-0" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
           <span class="text-soft">GitHub：</span><span class="text-white">github.com/11hls</span>
-        </div>
-        <div class="btn-ghost w-full sm:w-auto text-sm px-6 py-3 rounded-lg border border-line bg-bg/60 inline-flex items-center justify-center gap-3 select-all">
+        </a>
+        <a href="mailto:18950942792@163.com" class="btn-ghost w-full sm:w-auto text-sm px-6 py-3 rounded-lg border border-line bg-bg/60 inline-flex items-center justify-center gap-3 select-all">
           <svg class="w-4 h-4 text-soft shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
           <span class="text-soft">邮箱：</span><span class="text-white">18950942792@163.com</span>
-        </div>
+        </a>
       </div>
     </div>
   </div>
 </section>
-
 </main>
-
 <footer class="border-t border-line/60 py-10">
-  <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-dim">
-    <p>© 2026 余常进</p>
-    <p>Built with Tailwind CSS</p>
+  <div class="max-w-6xl mx-auto px-6 flex flex-col items-center gap-3">
+    <p class="font-display text-base text-white/70">© 2026 余常进</p>
+    <div id="siteStats" class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-dim">
+      <span>今日访问 <b id="statToday" class="font-display text-white font-semibold tabular-nums">--</b> 人</span>
+      <span class="text-white/20">·</span>
+      <span>累计访问 <b id="statTotal" class="font-display text-white font-semibold tabular-nums">--</b> 人</span>
+      <span class="text-white/20">·</span>
+      <span>本站已运行 <b id="statRunning" class="font-display text-white font-semibold tabular-nums">--</b></span>
+    </div>
   </div>
 </footer>
-
 <!-- 简历弹窗：页内直接弹出图片，不跳转新标签页 -->
 <div class="resume-modal" id="resumeModal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="简历预览">
   <button class="resume-close" id="resumeClose" aria-label="关闭简历预览">×</button>
-  <img src="./resume-1.png" alt="余常进 简历" />
+  <img src="./resume-1.webp" alt="余常进 简历" loading="lazy" decoding="async" />
 </div>
-
 <script>
+
+/* ===== 换背景功能（点一下换一个） ===== */
+(function() {
+  const BACKGROUNDS = [
+    { id: 'bear',   name: '🐻 自嘲小熊游泳中',   type: 'video', src: './xiong.mp4' },
+    { id: 'meteor', name: '☄️ 陨石坠落',   type: 'video', src: './bg-meteor.mp4' },
+    { id: 'aot',    name: '⚔️ 进击的巨人', type: 'image', src: './bg-aot-ocean.jpg' }
+  ];
+  const video = document.getElementById('bgVideo');
+  const image = document.getElementById('bgImage');
+  const toggleBtn = document.getElementById('bgToggleBtn');
+  const toast = document.getElementById('bgToast');
+  let currentIdx = 0;
+  let toastTimer = null;
+
+  function applyBackground(idx) {
+    const bg = BACKGROUNDS[idx];
+    if (!bg) return;
+    if (bg.type === 'video') {
+      video.src = bg.src;
+      video.style.display = 'block';
+      image.style.display = 'none';
+      video.play().catch(() => {});
+    } else {
+      image.src = bg.src;
+      image.style.display = 'block';
+      video.style.display = 'none';
+      video.pause();
+    }
+    localStorage.setItem('bgChoice', bg.id);
+    showToast(bg.name);
+  }
+
+  function showToast(name) {
+    toast.textContent = name;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  // 恢复用户选择
+  const savedBg = localStorage.getItem('bgChoice') || 'bear';
+  currentIdx = BACKGROUNDS.findIndex(b => b.id === savedBg);
+  if (currentIdx < 0) currentIdx = 0;
+  applyBackground(currentIdx);
+
+  // 预加载非当前背景：延迟 1.5s 后用 fetch 暖 HTTP 缓存，切换时秒切
+  setTimeout(() => {
+    BACKGROUNDS.forEach(bg => {
+      if (bg.id === BACKGROUNDS[currentIdx].id) return;
+      fetch(bg.src, { cache: 'force-cache' }).catch(() => {});
+    });
+  }, 1500);
+
+  // 点击切换到下一个背景
+  toggleBtn.addEventListener('click', () => {
+    currentIdx = (currentIdx + 1) % BACKGROUNDS.length;
+    applyBackground(currentIdx);
+  });
+})();
+
+/* ===== 下雨开关 ===== */
+(function() {
+  const btn = document.getElementById('rainToggleBtn');
+  const canvas = document.getElementById('rainCanvas');
+  if (!btn || !canvas) return;
+  // rain IIFE 暴露的全局切换函数
+  function apply(state) {
+    if (typeof window.setRain === 'function') window.setRain(state);
+    btn.classList.toggle('active', state);
+    localStorage.setItem('rainOn', state ? '1' : '0');
+  }
+  btn.addEventListener('click', () => {
+    const on = !btn.classList.contains('active');
+    apply(on);
+  });
+  // 初始状态（默认开）
+  const saved = localStorage.getItem('rainOn');
+  apply(saved === null ? true : saved === '1');
+})();
+
+/* 毛玻璃过渡：首屏渲染完成后给 body 加 .glass-on，毛玻璃从无模糊平滑过渡到轻微通透 */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => document.body.classList.add('glass-on'));
+  });
 /* 滚动入场动效：模块进入视口时加 .on，从模糊虚态聚焦浮现 */
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => {
@@ -414,7 +728,6 @@ const io = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
 /* 顶部滚动进度条 */
 const pbar = document.getElementById('progressBar');
 window.addEventListener('scroll', () => {
@@ -422,13 +735,13 @@ window.addEventListener('scroll', () => {
   const p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
   pbar.style.transform = `scaleX(${p})`;
 }, { passive: true });
-
-const menuBtn = document.getElementById('menuBtn');
-const mobileMenu = document.getElementById('mobileMenu');
-menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-mobileMenu.querySelectorAll('a').forEach(a =>
-  a.addEventListener('click', () => mobileMenu.classList.add('hidden'))
-);
+// 导航栏滚动阴影
+const navHeader = document.querySelector('header.nav-glass');
+if (navHeader) {
+  const onScroll = () => navHeader.classList.toggle('scrolled', window.scrollY > 10);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
 
 /* 小游戏下拉：触屏/键盘点击切换（桌面 hover 由 CSS 处理），点外部收起 */
 const gamesNav = document.getElementById('gamesNav');
@@ -443,7 +756,6 @@ document.addEventListener('click', e => {
     gamesTrigger.setAttribute('aria-expanded', 'false');
   }
 });
-
 /* 简历弹窗 */
 const resumeModal = document.getElementById('resumeModal');
 function openResume() {
@@ -461,12 +773,16 @@ resumeModal.addEventListener('click', e => { if (e.target === resumeModal) close
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && resumeModal.classList.contains('open')) closeResume();
 });
-
 /* 留言板：对接 Cloudflare Functions + D1（/api/messages，无需登录） */
 const listEl  = document.getElementById('msgList');
 const emptyEl = document.getElementById('msgEmpty');
 let msgState = [];
-
+function getLikedSet() {
+  try { return new Set(JSON.parse(localStorage.getItem('likedMsgs') || '[]')); } catch (e) { return new Set(); }
+}
+function saveLikedSet(s) {
+  try { localStorage.setItem('likedMsgs', JSON.stringify(Array.from(s))); } catch (e) {}
+}
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, s =>
     ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
@@ -478,72 +794,228 @@ function fmtTime(iso) {
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 function renderMessages() {
+  const likedSet = getLikedSet();
+  const countEl = document.getElementById('msgCount');
+  if (countEl) countEl.textContent = msgState.length ? `共 ${msgState.length} 条` : `还没有留言`;
   if (!msgState.length) {
     listEl.innerHTML = '';
     emptyEl.style.display = 'block';
     return;
   }
   emptyEl.style.display = 'none';
-  listEl.innerHTML = msgState.map(m => `
-    <div class="vcard p-5">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-sm font-medium text-brand2">${escapeHtml(m.nick)}</span>
-        <span class="text-xs text-dim">${escapeHtml(fmtTime(m.createdAt))}</span>
+  const sorted = [...msgState].sort((a, b) => {
+    const la = a.likes ?? 0, lb = b.likes ?? 0;
+    if (lb !== la) return lb - la;
+    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+  });
+  listEl.innerHTML = sorted.map(m => {
+    const liked = m.id ? likedSet.has(m.id) : false;
+    const likeBtn = m.id ? `<button class="like-btn ${liked ? 'liked' : ''}" data-id="${escapeHtml(m.id)}" ${liked ? 'disabled' : ''}>❤️ <span>${escapeHtml(m.likes ?? 0)}</span></button>` : '';
+    return `
+    <div class="vcard p-3 flex flex-col gap-1.5">
+      <div class="flex items-start justify-between gap-3">
+        <span class="text-base font-bold text-brand2">${escapeHtml(m.nick)}</span>
+        <span class="text-[11px] text-dim shrink-0 font-mono">${escapeHtml(fmtTime(m.createdAt))}</span>
       </div>
-      <p class="text-sm text-soft leading-relaxed">${escapeHtml(m.content)}</p>
+      <p class="text-sm text-soft leading-snug msg-content">${escapeHtml(m.content).replace(/[\\r\\n]+/g, " ")}</p>
+      <div class="flex justify-end pt-0.5">${likeBtn}</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
-
-async function loadMessages() {
+async function toggleLike(id) {
+  const likedSet = getLikedSet();
+  const idx = msgState.findIndex(m => m.id === id);
+  if (idx < 0) return;
+  const wasLiked = likedSet.has(id);
+  // 乐观更新
+  if (wasLiked) {
+    likedSet.delete(id);
+    msgState[idx].likes = Math.max(0, (msgState[idx].likes ?? 0) - 1);
+  } else {
+    likedSet.add(id);
+    msgState[idx].likes = (msgState[idx].likes ?? 0) + 1;
+  }
+  renderMessages();
   try {
-    const res = await fetch('/api/messages');
-    if (!res.ok) throw new Error('load failed');
-    msgState = await res.json();
+    const res = await fetch('/api/messages', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || '操作失败');
+    msgState[idx].likes = data.likes ?? msgState[idx].likes;
+    if (data.liked) likedSet.add(id); else likedSet.delete(id);
+    saveLikedSet(likedSet);
     renderMessages();
   } catch (e) {
-    emptyEl.textContent = '留言加载失败，稍后再试';
-    emptyEl.style.display = 'block';
+    if (wasLiked) {
+      likedSet.add(id);
+      msgState[idx].likes = (msgState[idx].likes ?? 0) + 1;
+    } else {
+      likedSet.delete(id);
+      msgState[idx].likes = Math.max(0, (msgState[idx].likes ?? 1) - 1);
+    }
+    renderMessages();
+    alert(e.message || '操作失败，请稍后再试');
   }
 }
-loadMessages();
-
-document.getElementById('msgForm').addEventListener('submit', async e => {
+// === 留言板：加载、事件绑定、初始化 ===
+async function loadMessages() {
+  const countEl = document.getElementById('msgCount');
+  if (countEl) countEl.textContent = '加载中…';
+  try {
+    const res = await fetch('/api/messages');
+    if (!res.ok) throw new Error('接口错误');
+    const data = await res.json();
+    msgState = Array.isArray(data) ? data : [];
+    renderMessages();
+  } catch (e) {
+    if (countEl) countEl.textContent = '加载失败，请稍后刷新';
+  }
+}
+document.getElementById('msgList').addEventListener('click', e => {
+  const btn = e.target.closest('.like-btn');
+  if (!btn) return;
+  const id = Number(btn.dataset.id);
+  if (id) toggleLike(id);
+});
+document.getElementById('msgForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const form = e.target;
   const nick = document.getElementById('msgNick').value.trim();
   const content = document.getElementById('msgContent').value.trim();
   if (!nick || !content) { alert('昵称和留言内容都要填哦'); return; }
-  const btn = e.target.querySelector('button[type="submit"]');
-  if (btn) btn.disabled = true;
-
-  // 乐观更新：先立刻把新留言插到顶部，提交不再等整列重新拉取（解决“卡”）
-  const optimistic = { nick, content, createdAt: new Date().toISOString() };
-  msgState.unshift(optimistic);
-  renderMessages();
-  e.target.reset();
-
+  if (content.length < 2) { alert('留言至少写 2 个字哦'); return; }
+  if (content.length > 100) { alert('留言最多 100 字哦'); return; }
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.disabled = true;
   try {
     const res = await fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nick, content }),
     });
-    if (!res.ok) {
-      const msg = await res.text().catch(() => '');
-      msgState.shift();            // 失败回滚
-      renderMessages();
-      alert(msg || '提交失败，请稍后再试');
-    }
-  } catch (err) {
-    msgState.shift();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || '提交失败');
+    msgState.unshift({ id: data.id, nick, content, likes: data.likes ?? 0, createdAt: data.createdAt });
     renderMessages();
-    alert('网络错误，提交失败');
+    form.reset();
+    const label = document.getElementById('msgCountLabel');
+    if (label) label.textContent = '0 / 100';
+  } catch (err) {
+    alert(err.message || '提交失败，请稍后再试');
   } finally {
-    if (btn) btn.disabled = false;
+    if (submitBtn) submitBtn.disabled = false;
   }
 });
-
+const _mc = document.getElementById('msgContent');
+const _ml = document.getElementById('msgCountLabel');
+if (_mc && _ml) {
+  _mc.addEventListener('input', () => {
+    _ml.textContent = _mc.value.length + ' / ' + _mc.maxLength;
+  });
+}
+loadMessages();
+/* 小雨效果：仿 chortle.asia Canvas 雨滴动画（支持开关） */
+(function(){'use strict';
+  const canvas = document.getElementById('rainCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let drops = [], animId = null, w = 0, h = 0, running = false;
+  function resize() {
+    w = window.innerWidth; h = window.innerHeight;
+    canvas.width = w * devicePixelRatio; canvas.height = h * devicePixelRatio;
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+  }
+  function createDrops(count) {
+    drops = [];
+    for (let i = 0; i < count; i++) {
+      drops.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        len: Math.random() * 18 + 8,
+        speed: Math.random() * 4 + 6,
+        opacity: Math.random() * 0.4 + 0.4,
+      });
+    }
+  }
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(200, 220, 255, 0.85)';
+    ctx.lineWidth = 1.5;
+    for (const d of drops) {
+      ctx.globalAlpha = d.opacity;
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x + 1.5, d.y + d.len);
+      ctx.stroke();
+      d.y += d.speed;
+      d.x += 0.6;
+      if (d.y > h) { d.y = -d.len; d.x = Math.random() * w; }
+      if (d.x > w) { d.x = 0; }
+    }
+    animId = requestAnimationFrame(draw);
+  }
+  function start() {
+    if (running) return;
+    resize();
+    createDrops(Math.max(80, Math.round(w * h / 18000)));
+    running = true;
+    draw();
+    canvas.style.display = 'block';
+  }
+  function stop() {
+    if (!running) return;
+    cancelAnimationFrame(animId);
+    running = false;
+    ctx.clearRect(0, 0, w, h);
+    canvas.style.display = 'none';
+  }
+  window.setRain = function(on) { on ? start() : stop(); };
+  window.addEventListener('resize', () => { if (running) { resize(); createDrops(Math.max(30, Math.round(w * h / 30000))); } });
+  start();
+})();
 </script>
 
+<script>
+/* ===== 站点统计：运行时长 + 访问人数 ===== */
+(function() {
+  // 网站起始时间（可按需修改）
+  const SITE_START = new Date('2026-09-01T00:00:00+08:00');
+
+  function updateRunning() {
+    const now = new Date();
+    let diff = Math.floor((now - SITE_START) / 1000);
+    if (diff < 0) diff = 0;
+    const d = Math.floor(diff / 86400);
+    const h = Math.floor((diff % 86400) / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+    const sec = diff % 60;
+    const el = document.getElementById('statRunning');
+    if (el) el.textContent = d + ' 天 ' + String(h).padStart(2,'0') + ' 时 ' + String(m).padStart(2,'0') + ' 分';
+  }
+
+  async function loadStats() {
+    try {
+      // 先记录本次访问
+      fetch('/api/stats', { method: 'POST' }).catch(() => {});
+      // 拉取统计数据
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      const tEl = document.getElementById('statToday');
+      const totEl = document.getElementById('statTotal');
+      if (tEl) tEl.textContent = data.today ?? 0;
+      if (totEl) totEl.textContent = data.total ?? 0;
+    } catch(e) {}
+  }
+
+  updateRunning();
+  setInterval(updateRunning, 1000);
+  loadStats();
+})();
+</script>
 </body>
 </html>

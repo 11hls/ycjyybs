@@ -1,6 +1,15 @@
 // 小游戏排行榜 API：GET 拉取 Top + POST 提交分数（Cloudflare Pages Functions + D1）
 // 绑定名 DB（wrangler.toml 中 [[d1_databases]].binding = "DB"）
 
+// CORS 防护：仅允许同源请求
+function checkSameOrigin(request) {
+  const origin = request.headers.get('Origin');
+  if (!origin) return true;
+  try {
+    return new URL(origin).origin === new URL(request.url).origin;
+  } catch { return false; }
+}
+
 export async function onRequestGet({ request, env }) {
   try {
     const url = new URL(request.url);
@@ -23,6 +32,7 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPost({ request, env }) {
+  if (!checkSameOrigin(request)) return Response.json({ error: "跨域请求被拒绝" }, { status: 403 });
   try {
     const body = await request.json().catch(() => null);
     if (!body) return Response.json({ error: '请求格式错误' }, { status: 400 });
@@ -33,8 +43,8 @@ export async function onRequestPost({ request, env }) {
     if (!game || !nick || !Number.isFinite(score) || score < 0) {
       return Response.json({ error: '参数不合法' }, { status: 400 });
     }
-    // 上限一兆减一（999,999,999,999）：数值崩坏玩法分数可指数级膨胀，超过一兆自动按此封顶
-    const SCORE_CAP = 999999999999;
+    // 上限 100 兆（100,000,000,000,000）：数值崩坏玩法分数可指数级膨胀，超过上限自动按此封顶
+    const SCORE_CAP = 100000000000000;
     const capped = Math.min(score, SCORE_CAP);
 
     // 简单防刷：同一 IP 30 秒内最多 2 条

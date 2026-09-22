@@ -34,11 +34,11 @@ CREATE TABLE IF NOT EXISTS scores (
 CREATE INDEX IF NOT EXISTS idx_scores_game ON scores(game, score DESC);
 
 
--- 访问统计表：(ip, visit_date) 联合主键，同一 IP 同一天只算 1 人
+-- 访问统计表：每次访问记一行，id 自增；累计访问次数 = COUNT(*)
 CREATE TABLE IF NOT EXISTS visitors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   ip TEXT NOT NULL,
   visit_date TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  PRIMARY KEY (ip, visit_date)
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_visitors_date ON visitors(visit_date);

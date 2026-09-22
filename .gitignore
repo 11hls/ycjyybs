@@ -2,3 +2,5 @@
 cf-token.txt
 .wrangler/
 node_modules/
+tmp/
+.xdg/

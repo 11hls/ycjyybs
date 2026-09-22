@@ -1,5 +1,6 @@
-// 访问统计 API：GET 返回今日+总访问人数，POST 记录本次访问
+// 访问统计 API：GET 返回今日+总访问次数，POST 记录本次访问
 // 绑定名 DB
+// 累计访问次数 = visitors 表行数（每次访问记一行，不去重）
 
 // CORS 防护：仅允许同源请求
 function checkSameOrigin(request) {
@@ -20,7 +21,7 @@ export async function onRequestGet({ env }) {
     ).bind(today).first();
 
     const totalRow = await env.DB.prepare(
-      "SELECT COUNT(DISTINCT ip) AS c FROM visitors"
+      "SELECT COUNT(*) AS c FROM visitors"
     ).first();
 
     return Response.json({
@@ -32,7 +33,7 @@ export async function onRequestGet({ env }) {
   }
 }
 
-// POST: 记录本次访问（按 IP+日期去重）
+// POST: 记录本次访问（每次访问都记一行，累计访问次数）
 export async function onRequestPost({ request, env }) {
   if (!checkSameOrigin(request)) return Response.json({ error: "跨域请求被拒绝" }, { status: 403 });
   try {
@@ -40,7 +41,7 @@ export async function onRequestPost({ request, env }) {
     const today = new Date().toISOString().slice(0, 10);
 
     await env.DB.prepare(
-      "INSERT OR IGNORE INTO visitors (ip, visit_date) VALUES (?, ?)"
+      "INSERT INTO visitors (ip, visit_date) VALUES (?, ?)"
     ).bind(ip, today).run();
 
     return Response.json({ ok: true });

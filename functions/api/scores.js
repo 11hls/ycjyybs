@@ -1,3 +1,15 @@
+// 服务端校验：防止客户端提交非法分数
+const MAX_SCORE = 10000;
+const MAX_NAME_LEN = 20;
+
+export function validateScorePayload(payload) {
+  if (!payload || typeof payload !== 'object') return 'invalid payload';
+  const { name, score } = payload;
+  if (typeof name !== 'string' || name.length === 0 || name.length > MAX_NAME_LEN) return 'invalid name';
+  if (!Number.isInteger(score) || score < 0 || score > MAX_SCORE) return 'invalid score';
+  return null;
+}
+
 // 小游戏排行榜 API：GET 拉取 Top + POST 提交分数（Cloudflare Pages Functions + D1）
 // 绑定名 DB（wrangler.toml 中 [[d1_databases]].binding = "DB"）
 

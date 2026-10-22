@@ -1,0 +1,13 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check Pages Functions
+        run: |
+          for f in functions/api/*.js; do
+            cp "$f" /tmp/check.mjs
+            node --check /tmp/check.mjs || exit 1
+          done
